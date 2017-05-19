@@ -1,0 +1,19 @@
+{
+  "name": "api-ips",
+  "version": "0.0.1",
+  "description": "Payment gateway for Insiginia Payment Solutions, API Web Service.",
+  "main": "server.js",
+  "scripts": {
+    "start:dev": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Insigina Mobile Communications, C.A.",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "jwt-simple": "^0.5.1",
+    "mysql": "^2.13.0",
+    "paypal-rest-sdk": "^1.7.1"
+  }
+}
