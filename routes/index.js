@@ -1,10 +1,8 @@
 var express = require('express')
 var router = express.Router()
 
-router.get('*', function(req, res){
-	res.status(404).send("ERROR 404: The webpage that you are looking for was not found.");
-})
+router.post('/v1/paypal/payment/new/creditcard', require('./creditcard').paypal)
 
-router.post('/paypal/payment/new/creditcard', require('./creditcard').paypal)
+router.post('/token', require('./tokens').new)
 
 module.exports = router

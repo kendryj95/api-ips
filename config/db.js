@@ -8,15 +8,15 @@ var con_insignia = mysql.createConnection({
 	database: 'sms'
 })
 
-var con_anron = mysql.createConnection({
+var con_ips = mysql.createConnection({
 	host: '138.186.176.49',
 	port: '3306',
 	user: 'anrononl_anron',
 	password: 'XjUm456',
-	database: 'anrononl_ao'
+	database: 'insignia_payments_solutions'
 })
 
 module.exports = {
 	insignia: con_insignia,
-	anron: con_anron
+	ips: con_ips
 }
