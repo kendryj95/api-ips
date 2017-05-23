@@ -1,0 +1,179 @@
+<br><br>
+<div class="row align-center">
+	<div class="column small-12 medium-9 large-8">
+		<a href="{{return_url}}" class="go-back" style="padding-top: 30px;">
+			<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
+			Regresar al paso anterior
+		</a>
+
+		<img src="/public/images/logo.png" alt="" class="image-center" >
+
+		<div class="summary">
+			<h5>Purchse summary</h5>
+
+			<table class="hover unstriped">
+				<thead>
+					<tr>
+						<th>PRODUCTS</th>
+						<th>PRICE</th>
+						<th>QUANTITY</th>
+						<th>SUBTOTAL</th>
+					</tr>
+				</thead>
+				<tbody>
+
+				{{#each purchase.products}}
+
+					<tr>
+						<td>
+							<p class="name">{{name}}</p>
+							<p>{{description}}</p>
+						</td>
+						<td>{{../purchase.currency}} {{price}}</td>
+						<td>{{quantity}}</td>
+						<td>
+							<span class="noteSubtotal">{{../purchase.currency}} {{before_discount products}}</span> <br> - <span class="discount">{{../purchase.currency}} {{discount}}</span> <br> = {{../purchase.currency}} {{subtotal products}}
+						</td>
+					</tr>
+
+				{{/each}}
+
+				</tbody>
+			</table>
+		</div>
+
+		<div class="pay-methods">
+			<h5>Choose a payment method</h5>
+
+			<ul class="tabs" data-responsive-accordion-tabs="tabs medium-accordion large-tabs" id="pay-methods-tabs">
+				<li class="tabs-title is-active"><a href="#paypal" aria-selected="true">Paypal</a></li>
+				<li class="tabs-title"><a href="#stripe">Stripe</a></li>
+				<li class="tabs-title"><a href="#creditcard">Credit card</a></li>
+			</ul>
+
+			<div class="tabs-content" data-tabs-content="pay-methods-tabs">
+				<div class="tabs-panel is-active" id="paypal">
+					<p>paypal</p>
+				</div>
+				<div class="tabs-panel" id="stripe">
+					<p>stripe</p>
+				</div>
+				<div class="tabs-panel" id="creditcard">
+
+					<form action="http://localhost:3030/sales/pay/creditcard" method="post" enctype="application/json">
+
+						<input type="hidden" name="purchase" value="{{json purchase}}">
+						<input type="hidden" name="redirect_url" value="{{return_url}}">
+						<input type="hidden" name="token" value="{{token}}">
+
+						<h6>Billing</h6>
+
+						<div class="row">
+							<div class="column small-12 medium-6">
+								<label>
+									First name
+									<input type="text" placeholder="Jhon" name="first_name" required>
+								</label>
+							</div>
+							<div class="column small-12 medium-6">
+								<label>
+									Last name
+									<input type="text" placeholder="Smith" name="last_name" required>
+								</label>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="column small-12 medium-6">
+								<label>
+									Address
+									<input type="text" placeholder="5th avenue" name="address" required>
+								</label>
+							</div>
+							<div class="column small-12 medium-6">
+								<label>
+									City
+									<input type="text" placeholder="New York" name="city" required>
+								</label>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="column small-12 medium-6">
+								<label>
+									State
+									<input type="text" placeholder="NY" name="state" required>
+								</label>
+							</div>
+							<div class="column small-12 medium-6">
+								<label>
+									Country
+									<select name="country" required>
+										{{#each countries}}
+										<option value="{{ccode}}">{{cname}}</option>
+										{{/each}}
+									</select>
+								</label>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="column small-12 medium-6">
+								<label>
+									Postal code
+									<input type="text" placeholder="10001" name="postal_code" required>
+								</label>
+							</div>
+						</div>
+
+						<h6>Credit card</h6>
+
+						<div class="row">
+							<div class="column">
+								<label>
+									Type
+									<select name="cc_type" required>
+										<option value="visa">Visa</option>
+										<option value="mastercard">Master card</option>
+										<option value="amex">American express</option>
+									</select>
+								</label>
+							</div>
+						</div>
+						<div class="row">
+							<div class="column">
+								<label>
+									Number
+									<input type="number" name="cc_number" placeholder="12345678910111213" required>
+								</label>
+							</div>
+							<div class="column">
+								<label>
+									CVV
+									<input type="number" name="cc_cvv" placeholder="132" required>
+								</label>
+							</div>
+						</div>
+						<div class="row">
+							<div class="column">
+								<label>
+									Expiration date
+									<input type="month" name="cc_expiration_date" id="cc_expiration_date" placeholder="2019-10" required>
+								</label>
+							</div>
+						</div>
+
+						<br>
+						<div class="clearfix">
+							<h6 class="float-left"><b>Total:</b> {{purchase.currency}} {{purchase.total}}</h6>
+							<button type="submit" class="alert button float-right">Process payment</button>	
+						</div>
+
+					</form>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<br><br>

@@ -2,7 +2,7 @@ const insignia_db = require('../config/db').insignia
 const ips_db = require('../config/db').ips
 
 module.exports = {
-	new_save: function(token, purchase, credit_card, payment_response) {
+	new_save: function(token, purchase, payer, payment_response) {
 
 		purchase.products.forEach(o => {
 			// Save new sale on Insignia Mobile Communications
