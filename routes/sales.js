@@ -42,6 +42,9 @@ module.exports = {
 
 	pay: {
 		creditcard: require('../payments/creditcard').paypal,
-		paypal: require('../payments/paypal')
+		paypal: {
+			prepare: require('../payments/paypal').prepare,
+			execute: require('../payments/paypal').execute
+		}
 	}
 }

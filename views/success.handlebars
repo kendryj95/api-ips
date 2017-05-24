@@ -1,3 +1,4 @@
+<br><br><br>
 <div class="row align-center">
 	<div class="column small-12 medium-9 large-8">
 		
@@ -5,8 +6,15 @@
 			<i class="fa fa-check-circle error" aria-hidden="true" style="color: #28b501;"></i>
 			
 			<h4>Perfect!</h4>
+			<br>
 			<p>Your payment had been proccessed successfully, please <a href="{{redirect_url}}" class="go-back">go back to main page</a>.</p>
 		</div>
 
 	</div>
 </div>
+
+<script>
+	window.setTimeout(function(){
+		window.location.href = '{{redirect_url}}';
+	}, 5000);
+</script>

@@ -21,8 +21,6 @@ module.exports = {
 						sc: token.cliente.sc,
 						contenido: `${o.type}_${token.cliente.sc}_${token.cliente.nombre}_${o.description}`,
 						estado: 1,
-						//data_arrive: new Date().toISOString().slice(0, 10),
-						//time_arrive: new Date().toISOString().slice(11, 19),
 						desp_op: pay_type,
 						id_producto
 					}
