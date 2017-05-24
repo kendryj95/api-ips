@@ -1,0 +1,22 @@
+<form action="http://localhost:3030/v1/sales/pay/paypal" method="POST" enctype="application/json">
+
+	<input type="hidden" name="purchase" value="{{json purchase}}">
+	<input type="hidden" name="redirect_url" value="{{return_url}}">
+	<input type="hidden" name="token" value="{{token}}">
+	
+	<img src="/public/images/paypal-logo.png" alt="Paypal" class="image-center" style="width: 40%;">
+
+	<div style="text-align: justify; margin-bottom: 20px;">
+		<p><b>PayPal Holdings, Inc.</b> is an American company operating a worldwide online payments system that supports online money transfers and serves as an electronic alternative to traditional paper methods like checks and money orders. PayPal is one of the world's largest Internet payment companies.</p>
+
+		<p>With this aliance, <b>Insignia Payment Solutions</b> brings to you one of the must reliable and strong internet payment companies in the world to make your payments with confidence.</p>
+	</div>
+
+	<span class="separator"></span>
+
+	<div class="clearfix">
+		<h6 class="float-left"><b>Total</b> {{ purchase.currency }} {{ purchase.total }} </h6>
+
+		<button type="submit" class="button alert float-right">Process pay through paypal</button>
+	</div>
+</form>

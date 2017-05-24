@@ -28,9 +28,6 @@ module.exports = {
 					},
 					before_discount: function(){
 						return (this.price * this.quantity)
-					},
-					json: function(json){
-						return JSON.stringify(json)
 					}
 				}
 			})
@@ -44,6 +41,7 @@ module.exports = {
 	},
 
 	pay: {
-		creditcard: require('../payments/creditcard').paypal
+		creditcard: require('../payments/creditcard').paypal,
+		paypal: require('../payments/paypal')
 	}
 }

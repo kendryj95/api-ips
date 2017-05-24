@@ -1,0 +1,26 @@
+<br><br>
+<div class="row align-center">
+	<div class="cloumn small-12 medium-9 large-8">
+		<a href="javascript:history.back();" class="go-back" style="padding-top: 30px;">
+			<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
+			Go back to previus step
+		</a>
+
+		<br>
+		<br>
+		<br>
+
+		<div style="text-align: center;">
+			<i class="fa fa-exclamation-triangle error" aria-hidden="true"></i>	
+
+			<h4>Your request could not be processed due the following issues:</h4>
+			<ul>
+			{{#each error.details}}
+				<li>{{issue}}</li>
+			{{/each}}
+			</ul>
+
+		</div>
+
+	</div>
+</div>

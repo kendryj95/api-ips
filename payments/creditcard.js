@@ -3,6 +3,7 @@ const moment = require('moment')
 
 module.exports = {
 	paypal: function(req, res) {
+		const base_url = 'http://localhost:3030/v1/sales'
 
 		if (req.body && req.body.purchase && req.body.redirect_url) {
 			require('../config/setup')
@@ -75,17 +76,28 @@ module.exports = {
 				
 				paypal.payment.create(create_payment, function(err, payment){
 					if (err) {
-						res.status(err.httpStatusCode).json({ "paypal_error": err, "error_code": 8 })
+						res.status(err.httpStatusCode).render('cancel', {
+							title: 'There was an error processing your payment',
+							error: {
+								details: err.response.details
+							}
+						})
 						console.log(err)
 						return
 					}
 
-					require('../db/payment').new_save(token, purchase, payer, payment)
-					res.status(payment.httpStatusCode).json(payment)
+					require('../db/payment').new_save(token, purchase, payer, payment, 'PAYPAL_CREDITCARD')
+					
+					res.status(payment.httpStatusCode).render('success', {
+						title: 'Payment processed successfully',
+						response: payment,
+						redirect_url: redirect_url
+					})
+
 				})
 
 			} catch (e) {
-				res.status(400).json({ "status": 400, "error": "Credit card data or purcharse info not provided", "error_code": 7, "original_error": e })
+				res.status(400).json({ "status": 400, "error": "Credit card data or purchase info not provided", "error_code": 7, "original_error": e })
 				console.log(e)
 				return
 			}

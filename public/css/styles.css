@@ -87,3 +87,16 @@ form > h6:after {
 .button.alert:hover {
 	backgroung-color: #84060c !important;
 }
+
+.error {
+	font-size: 16rem;
+}
+
+span.separator:after {
+	content: '';
+	display: block;
+	width: 100%;
+	height: 1.5px;
+	background-color: #C30A12;
+	margin: 20px auto;
+}

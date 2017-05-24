@@ -29,6 +29,10 @@
 			minDate: moment().toDate(),
 			maxDate: moment().add(5, 'years').toDate()
 		})
+
+		window.onbeforeunload = function() {
+			return "You have attempted to leave this page. Are you sure? If you leave this page, we won't be able to save your purchase."
+		}
 	</script>
 </body>
 </html>

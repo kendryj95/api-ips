@@ -2,7 +2,7 @@ const jwt = require('jwt-simple')
 
 module.exports = function (req, res, next) {
 	// Get token through http headers
-	const token = (req.body && req.body.access_token) || (req.body && req.query.access_token) || req.headers['x-access-token']
+	const token = (req.body && req.body.token) || (req.body && req.query.token) || req.headers['x-access-token']
 
 	if (token && typeof(token) !== 'undefined') {
 		try {
@@ -31,7 +31,8 @@ module.exports = function (req, res, next) {
 		res.status(401).json({
 			"status": 401,
 			"message": "Unexisting or invalid token.",
-			"error_code": 1
+			"error_code": 1,
+			"request.body": req.body
 		})
 		return
 	}

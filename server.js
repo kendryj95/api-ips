@@ -16,7 +16,14 @@ app.use(bodyParser.json())
 app.use(cors())
 
 // configure handlebars as view engine
-app.engine('handlebars', exphbs({ defaultLayout: 'main' }))
+app.engine('handlebars', exphbs({ 
+	defaultLayout: 'main',
+	helpers: {
+		json: function(json){
+			return JSON.stringify(json)
+		}
+	}
+}))
 app.set('view engine', 'handlebars')
 
 // set vendor static files
