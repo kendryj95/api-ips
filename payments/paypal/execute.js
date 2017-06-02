@@ -62,6 +62,8 @@ function saveOnDatabase (payment, paymentId) {
 						}
 					)
 
+					console.log(data)
+
 					// INSERT EN BASE DE DATOS DE INSIGNIA (SMSIN)
 					db.connection.insignia.query(
 						{
@@ -72,10 +74,18 @@ function saveOnDatabase (payment, paymentId) {
 							data.sms.id,
 							data.sms.origen,
 							data.sms.sc,
-							data.sms.cantenido,
+							data.sms.contenido,
 							'PAYPAL',
 							data.id_producto
 						],
+						/*[
+							data.sms.id,
+							data.sms.origen,
+							data.sms.sc,
+							data.sms.contenido,
+							'PAYPAL',
+							data.id_producto
+						],*/
 						(err, result) => {
 							if (err) {
 								deferred.reject({
@@ -88,6 +98,9 @@ function saveOnDatabase (payment, paymentId) {
 									}
 								})
 							}
+
+							console.log("================================================")
+							console.log(result)
 						}
 					)
 				}
