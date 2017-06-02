@@ -18,21 +18,10 @@
 	{{{ body }}}
 
 	<script src="/vendor/jquery/jquery.min.js"></script>
-	<script src="/vendor/what-input/what-input.min.js"></script>
 	<script src="/vendor/foundation/js/foundation.min.js"></script>
-	<script src="/vendor/pikaday/pikaday.js"></script>
+	<script src="/vendor/what-input/what-input.min.js"></script>
 	<script src="/vendor/moment/moment.min.js"></script>
-	<script>
-		$(document).foundation();
-		var picker = new Pikaday({
-			field: $('#cc_expiration_date')[0],
-			minDate: moment().toDate(),
-			maxDate: moment().add(5, 'years').toDate()
-		})
-
-		window.onbeforeunload = function() {
-			return "You have attempted to leave this page. Are you sure? If you leave this page, we won't be able to save your purchase."
-		}
-	</script>
+	<script src="/vendor/pikaday/pikaday.js"></script>
+	<script src="/public/js/main.js"></script>
 </body>
 </html>

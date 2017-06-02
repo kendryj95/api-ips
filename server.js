@@ -3,6 +3,8 @@ const paypal = require('paypal-rest-sdk')
 const bodyParser = require('body-parser')
 const exphbs = require('express-handlebars')
 const cors = require('cors')
+const morgan = require('morgan')
+const log4js = require('log4js')
 
 const app = express()
 
@@ -21,6 +23,12 @@ app.engine('handlebars', exphbs({
 	helpers: {
 		json: function(json){
 			return JSON.stringify(json)
+		},
+		subtotal: function(currency, price, quantity){
+			return require('./enviroments/formatter').money((quantity * price), currency)
+		},
+		money: function(currency, price){
+			return require('./enviroments/formatter').money(price, currency)
 		}
 	}
 }))
@@ -36,24 +44,32 @@ app.use(base_url+'/pikaday', express.static(__dirname + '/node_modules/pikaday')
 app.use(base_url+'/moment', express.static(__dirname + '/node_modules/moment/min'))
 
 app.all('/*', function(req, res, next) {
-	// show date and time
-	console.log(new Date().toLocaleTimeString())
-
-  if (req.method == 'OPTIONS') {
-    res.status(200).end()
-  } else {
-    next()
-  }
+	if (req.method == 'OPTIONS') {
+		res.status(200).end()
+	} else {
+		next()
+	}
 })
+
+// Debug 
+app.use(morgan('combined', {
+	'stream': {
+		write: function(str) { log4js.getLogger().debug(str); }
+	}
+}))
 
 app.all('/v1/*', [require('./middlewares/validateRequest')])
 
 app.use('/', require('./routes/'))
 
-app.use((req, res, next) => {
-	let err = new Error('Not found')
-	err.status = 400
-	next(err)
+app.all('/*', (req, res) => {
+	res.status(404).render('error', {
+		title: 'ERROR',
+		error: {
+			'status': 404,
+			'message': 'Page you are looking for does not exists.'
+		}
+	})
 })
 
 app.set('port', process.env.PORT || 3030)

@@ -11,14 +11,8 @@
 		<br>
 
 		<div style="text-align: center;">
-			<i class="fa fa-exclamation-triangle error" aria-hidden="true"></i>	
-
-			<h4>Su solicitud no pudo ser procesada debido a los siguientes problemas:</h4>
-			<ul>
-			{{#each error.details}}
-				<li>{{issue}}</li>
-			{{/each}}
-			</ul>
+			
+			<p>{{json error}}</p>
 
 		</div>
 
