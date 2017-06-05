@@ -78,14 +78,6 @@ function saveOnDatabase (payment, paymentId) {
 							'PAYPAL',
 							data.id_producto
 						],
-						/*[
-							data.sms.id,
-							data.sms.origen,
-							data.sms.sc,
-							data.sms.contenido,
-							'PAYPAL',
-							data.id_producto
-						],*/
 						(err, result) => {
 							if (err) {
 								deferred.reject({
@@ -98,9 +90,6 @@ function saveOnDatabase (payment, paymentId) {
 									}
 								})
 							}
-
-							console.log("================================================")
-							console.log(result)
 						}
 					)
 				}
@@ -148,7 +137,7 @@ module.exports = function(req, res) {
 
 					saveOnDatabase(payment, paymentId)
 					.then(data => {
-						const url = 'http://192.168.1.46:3030/sales/success?' + querystring.stringify({ 
+						const url = req.protocol + '://' +req.get('host') + '/sales/success?' + querystring.stringify({ 
 							url: data.url,
 							paymentId: paymentId
 						})
@@ -186,8 +175,6 @@ module.exports = function(req, res) {
 						}
 					}
 				}
-
-				//res.json(payment)
 			}
 		})
 	} catch(e) {

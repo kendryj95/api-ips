@@ -72,12 +72,12 @@ module.exports = {
 			})
 		}
 	},
-
 	pay: {
 		creditcard: require('../payments/creditcard').paypal,
 		paypal: {
 			prepare: require('../payments/paypal').prepare,
 			execute: require('../payments/paypal').execute
-		}
+		},
+		stripe: require('../payments/stripe')
 	}
 }

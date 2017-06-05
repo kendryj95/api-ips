@@ -7,7 +7,7 @@
 			
 			<h4>¡Perfecto!</h4>
 			<br>
-			<p>El pago ha sido procesado correctamente, porfavor <a href="{{redirect_url}}" class="go-back">haga click aquí para regresar</a>.</p>
+			<p>El pago ha sido procesado correctamente, porfavor <a href="{{{redirect_url}}}" class="go-back">haga click aquí para regresar</a>.</p>
 		</div>
 
 	</div>
@@ -15,6 +15,6 @@
 
 <script>
 	window.setTimeout(function(){
-		window.location.href = '{{redirect_url}}';
+		window.location.href = '{{{redirect_url}}}';
 	}, 5000);
 </script>

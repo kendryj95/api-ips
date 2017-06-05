@@ -1,80 +1,110 @@
-<form action="sales/pay/stripe" method="post" enctype="application/json" id="stripe_form" data-abide novalidate>
+<img src="/public/images/stripe-logo.png" alt="Stripe" class="image-center" style="width: 40%;">
+
+<div style="text-align: justify; margin-bottom: 20px;">
+	<p><b>Stripe, Inc.</b> es una compañía tecnologica norteamericana que opera en más de 25 países alrededor del mundo, que permite a personas naturales y comercios aceptar pagos a nivel internacional por internet. EL enfoque de stripe es el de ofrecer un especial cuidado en las tecnologías que hacen posible que funcione la empresa, en la prevención del fraude y en la infraestructura bancaria necesaria requerida para poder procesar pagos online.</p>
+</div>
+
+<ul class="accordion" data-accordion>
+	<li class="accordion-item is-active" data-accordion-item>
+		<!-- Accordion tab title -->
+		<a href="#" class="accordion-title">Tarjeta de crédito</a>
+
+		<!-- Accordion tab content: it would start in the open state due to using the `is-active` state class. -->
+		<div class="accordion-content" data-tab-content>
+			<form action="sales/pay/stripe" method="post" enctype="application/json" id="stripe_form_creditcard" data-abide novalidate>
 		
-	<input type="hidden" name="purchase" value="{{json purchase}}">
-	<input type="hidden" name="redirect_url" value="{{return_url}}">
-	<input type="hidden" name="token" value="{{token}}">
+				<input type="hidden" name="purchase" value="{{json purchase}}">
+				<input type="hidden" name="redirect_url" value="{{return_url}}">
+				<input type="hidden" name="token" value="{{token}}">
 
-	<img src="/public/images/stripe-logo.png" alt="Stripe" class="image-center" style="width: 40%;">
+				<div data-abide-error class="alert callout" style="display: none;">
+					<p><i class="fi-alert"></i> Porfavor complete todos los campos adecuadamente.</p>
+				</div>
 
-	<div style="text-align: justify; margin-bottom: 20px;">
-		<p><b>Stripe, Inc.</b> es una compañía tecnologica norteamericana que opera en más de 25 países alrededor del mundo, que permite a personas naturales y comercios aceptar pagos a nivel internacional por internet. EL enfoque de stripe es el de ofrecer un especial cuidado en las tecnologías que hacen posible que funcione la empresa, en la prevención del fraude y en la infraestructura bancaria necesaria requerida para poder procesar pagos online.</p>
-	</div>
+				<h6>Tarjeta de crédito</h6>
 
-	<div data-abide-error class="alert callout" style="display: none;">
-		<p><i class="fi-alert"></i> Porfavor complete todos los campos adecuadamente.</p>
-	</div>
+				<div class="row">
+					<div class="column">
+						<label>
+							Número
+							<input type="number" placeholder="4242 4242 4242 4242" name="stripe_cc_number" id="stripe_cc_number" pattern="card" required>
+							<span class="form-error">
+								Por favor, ingrese un numero de tarjeta válido.
+							</span>
+						</label>
+					</div>
+				</div>
 
-	<h6>Tarjeta de crédito</h6>
+				<div class="row">
+					<div class="column small-12 medium-6">
+						<label>
+							CVV
+							<input type="number" placeholder="132" name="stripe_cc_cvv" pattern="cvv" required>
+							<span class="form-error">
+								Por favor ingrese un numero de seguridad válido.
+							</span>
+						</label>
+					</div>
+					<div class="column small-12 medium-6">
+						<label>
+							Fecha de expiración
+							<input type="text" class="cc_expiration_date" placeholder="2018/05" name="stripe_cc_edate" pattern="expiration_date" required>
+							<span class="form-error">
+								Por favor ingrese una fecha válida.
+							</span>
+						</label>
+					</div>
+				</div>
 
-	<div class="row">
-		<div class="column">
-			<label>
-				Número
-				<input type="number" placeholder="4242 4242 4242 4242" name="stripe_cc_number" id="stripe_cc_number" pattern="card" required>
-				<span class="form-error">
-					Por favor, ingrese un numero de tarjeta válido.
-				</span>
-			</label>
+				<div class="row align-middle">
+					<div class="column small-12 medium-6">
+						<label>
+							Código postal
+							<input type="number" placeholder="10001" name="stripe_cc_zip" id="stripe_cc_zip" pattern="number" required>
+							<span class="form-error">
+								Por favor ingrese un código postal válido.
+							</span>
+						</label>
+					</div>
+					<div class="column small-12 medium-6">
+						<p style="color: #brbrbr; font-size: 0.8rem; padding-top: 15px;">Recuerde que el código postal depende de la dirección de domiciliación de su tarjeta de crédito y del país en cuestión.</p>
+					</div>
+				</div>
+
+				{{> contact_form purchase.client }}
+
+				<br>
+
+				<div class="clearfix">
+					<h6 class="float-left"><b>Total:</b> {{money purchase.currency purchase.total }} </h6>
+
+					<button type="submit" value="Submit" class="button alert float-right">Procesar pago con stripe</button>
+				</div>
+
+				<div class="clearfix">
+					<p class="float-right">No guardamos ningún dato de tu tarjeta de cŕedito.</p>
+				</div>
+			</form>
 		</div>
-	</div>
+	</li>
+	<li class="accordion-item " data-accordion-item>
+		<!-- Accordion tab title -->
+		<a href="#" class="accordion-title">Accordion 1</a>
 
-	<div class="row">
-		<div class="column small-12 medium-6">
-			<label>
-				CVV
-				<input type="number" placeholder="132" name="stripe_cc_cvv" pattern="cvv" required>
-				<span class="form-error">
-					Por favor ingrese un numero de seguridad válido.
-				</span>
-			</label>
+		<!-- Accordion tab content: it would start in the open state due to using the `` state class. -->
+		<div class="accordion-content" data-tab-content>
+			<p>Panel 1. Lorem ipsum dolor</p>
+			<a href="#">Nowhere to Go</a>
 		</div>
-		<div class="column small-12 medium-6">
-			<label>
-				Fecha de expiración
-				<input type="text" class="cc_expiration_date" placeholder="2018/05" name="stripe_cc_edate" pattern="expiration_date" required>
-				<span class="form-error">
-					Por favor ingrese una fecha válida.
-				</span>
-			</label>
+	</li>
+	<li class="accordion-item " data-accordion-item>
+		<!-- Accordion tab title -->
+		<a href="#" class="accordion-title">Accordion 1</a>
+
+		<!-- Accordion tab content: it would start in the open state due to using the `is-active` state class. -->
+		<div class="accordion-content" data-tab-content>
+			<p>Panel 1. Lorem ipsum dolor</p>
+			<a href="#">Nowhere to Go</a>
 		</div>
-	</div>
-
-	<div class="row align-middle">
-		<div class="column small-12 medium-6">
-			<label>
-				Código postal
-				<input type="number" placeholder="10001" name="stripe_cc_zip" id="stripe_cc_zip" pattern="number" required>
-				<span class="form-error">
-					Por favor ingrese un código postal válido.
-				</span>
-			</label>
-		</div>
-		<div class="column small-12 medium-6">
-			<p style="color: #brbrbr; font-size: 0.8rem; padding-top: 15px;">Recuerde que el código postal depende de la dirección de domiciliación de su tarjeta de crédito y del país en cuestión.</p>
-		</div>
-	</div>
-
-	{{> contact_form purchase.client }}
-
-	<br>
-
-	<div class="clearfix">
-		<h6 class="float-left"><b>Total:</b> {{money purchase.currency purchase.total }} </h6>
-
-		<button type="submit" value="Submit" class="button alert float-right">Procesar pago con stripe</button>
-	</div>
-
-	<div class="clearfix">
-		<p class="float-right">No guardamos ningún dato de tu tarjeta de cŕedito.</p>
-	</div>
-</form>
+	</li>
+</ul>
