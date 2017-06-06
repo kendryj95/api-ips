@@ -4,24 +4,24 @@
 	<p><b>Stripe, Inc.</b> es una compañía tecnologica norteamericana que opera en más de 25 países alrededor del mundo, que permite a personas naturales y comercios aceptar pagos a nivel internacional por internet. EL enfoque de stripe es el de ofrecer un especial cuidado en las tecnologías que hacen posible que funcione la empresa, en la prevención del fraude y en la infraestructura bancaria necesaria requerida para poder procesar pagos online.</p>
 </div>
 
-<ul class="accordion" data-accordion>
+<h6 class="underlined" style="margin-bottom: 20px;">Seleccione una forma para pagar</h6>
+
+<ul class="accordion stripe-methods" data-accordion>
 	<li class="accordion-item is-active" data-accordion-item>
 		<!-- Accordion tab title -->
 		<a href="#" class="accordion-title">Tarjeta de crédito</a>
 
 		<!-- Accordion tab content: it would start in the open state due to using the `is-active` state class. -->
 		<div class="accordion-content" data-tab-content>
-			<form action="sales/pay/stripe" method="post" enctype="application/json" id="stripe_form_creditcard" data-abide novalidate>
+			<form action="sales/pay/stripe/creditcard" method="post" enctype="application/json" id="stripe_form_creditcard" data-abide novalidate>
 		
 				<input type="hidden" name="purchase" value="{{json purchase}}">
 				<input type="hidden" name="redirect_url" value="{{return_url}}">
 				<input type="hidden" name="token" value="{{token}}">
 
 				<div data-abide-error class="alert callout" style="display: none;">
-					<p><i class="fi-alert"></i> Porfavor complete todos los campos adecuadamente.</p>
+					<p><i class="fi-alert"></i> Porfavor complete todos los campos correctamente.</p>
 				</div>
-
-				<h6>Tarjeta de crédito</h6>
 
 				<div class="row">
 					<div class="column">
@@ -76,7 +76,7 @@
 				<br>
 
 				<div class="clearfix">
-					<h6 class="float-left"><b>Total:</b> {{money purchase.currency purchase.total }} </h6>
+					<h6 class="float-left"><b>Total:</b> {{ money purchase.currency purchase.total }} </h6>
 
 					<button type="submit" value="Submit" class="button alert float-right">Procesar pago con stripe</button>
 				</div>

@@ -4,12 +4,12 @@ const hbs = require('nodemailer-express-handlebars')
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
 	pool: true,
-	host: 'mail.insigniamobile.com.ve',
-	port: 587,
-	secure: false, // use TLS
+	host: 'insignia.com.ve',
+	port: 465,
+	secure: true, // use TLS
 	auth: {
-		user: 'notificaciones@insigniamobile.com.ve',
-		pass: 'qwe123'
+		user: 'notificaciones@insignia.com.ve',
+		pass: 'qwe123#'
 	},
 	tls: {
 		rejectUnauthorized:false
@@ -31,7 +31,7 @@ transporter.use('compile', hbs(config))
 
 function newMail (to, subject, template, context, callback) {
 	let mailOptions = {
-		from: '"Insignia Payment Solutions" <notificaciones@insigniamobile.com.ve>',
+		from: '"Insignia Payment Solutions" <notificaciones@insignia.com.ve>',
 		to,
 		subject,
 		template,
@@ -43,7 +43,7 @@ function newMail (to, subject, template, context, callback) {
 			{
 				filename: 'logo.png',
 				href: 'http://imgur.com/qHMk01i',
-				cid: 'notificaciones@insigniamobile.com.ve'
+				cid: 'notificaciones@insignia.com.ve'
 			}
 		]
 	}

@@ -9,7 +9,7 @@ function saveOnDatabase (payment, paymentId) {
 	db.pool.ips.getConnection((err, con) => {
 		con.query(
 			'SELECT p.id_pago AS id, p.sms_id, p.sms_sc, p.sms_contenido, p.id_producto_insignia AS id_producto, p.redirect_url, p.consumidor_email, p.consumidor_telefono FROM insignia_payments_solutions.pagos p WHERE p.estado_pago = \'esperando_confirmacion\' AND p.id_api_call = \''+paymentId+'\'',
-			function(error, results, fields) {
+			(error, results, fields) => {
 				if (error) {
 					deferred.reject({
 						title: 'ERROR',
@@ -62,8 +62,6 @@ function saveOnDatabase (payment, paymentId) {
 						}
 					)
 
-					console.log(data)
-
 					// INSERT EN BASE DE DATOS DE INSIGNIA (SMSIN)
 					db.connection.insignia.query(
 						{
@@ -99,7 +97,8 @@ function saveOnDatabase (payment, paymentId) {
 					'message': 'Pago procesado staisfactoriamente.',
 					'notification_email': results[0].consumidor_email,
 					'natifications_phone': results[0].consumidor_telefono,
-					'url': results[0].redirect_url
+					'url': results[0].redirect_url,
+					'idCompra': payment.transactions[0].related_resources[0].sale.id
 				})
 
 				con.release()
@@ -139,7 +138,8 @@ module.exports = function(req, res) {
 					.then(data => {
 						const url = req.protocol + '://' +req.get('host') + '/sales/success?' + querystring.stringify({ 
 							url: data.url,
-							paymentId: paymentId
+							paymentId: paymentId,
+							idCompra: data.idCompra
 						})
 						res.redirect(url)
 

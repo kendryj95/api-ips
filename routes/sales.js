@@ -3,15 +3,14 @@ const db = require('../config/db')
 const mail = require('../enviroments/email')
 
 module.exports = {
-	new: function(req, res) {
-
+	new: (req, res) => {
 		if (req.body.purchase && req.body.redirect_url) {
 
 			let purchase = JSON.parse(req.body.purchase)
 			let redirect_url = req.body.redirect_url
 			let token = req.body.token
 
-			db.connection.ips.query(
+			db.pool.ips.query(
 				'SELECT mp.descripcion, mp.status FROM metodos_de_pago mp',
 				(err, results, fields) => {
 					if (err) {
@@ -78,6 +77,8 @@ module.exports = {
 			prepare: require('../payments/paypal').prepare,
 			execute: require('../payments/paypal').execute
 		},
-		stripe: require('../payments/stripe')
+		stripe: {
+			creditcard: require('../payments/stripe/creditcard')
+		}
 	}
 }

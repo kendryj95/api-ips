@@ -14,12 +14,16 @@ router.post('/v1/sales/pay/creditcard', sales.pay.creditcard)
 
 router.post('/v1/sales/pay/paypal', sales.pay.paypal.prepare)
 
-router.post('/v1/sales/pay/stripe', sales.pay.stripe)
+router.post('/v1/sales/pay/stripe/creditcard', sales.pay.stripe.creditcard)
 
 router.get('/sales/proceed/paypal/success', sales.pay.paypal.execute)
 
 router.get('/sales/proceed/paypal/cancel', result.showCancel)
 
 router.get('/sales/success', result.showSuccess)
+
+router.get('/stripe/webhooks', function(req, res){
+	console.log(req.body)
+})
 
 module.exports = router

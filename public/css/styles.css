@@ -41,7 +41,7 @@ table > tbody > tr > td > p.name {
 	font-weight: 700;
 }
 
-#pay-methods-tabs > li > a {
+#pay-methods-tabs > li > a, .stripe-methods > li > a {
 	color: #C30A12;
 	font-family: 'Open Sans', sans-serif;
 	font-size: 0.9rem;
@@ -66,12 +66,12 @@ table > tbody > tr > td > p.name {
 	margin-top: 4px;
 }
 
-form > h6 {
+form > h6, h6.underlined {
 	margin-top: 0.5rem;
 	margin-bottom: 1rem;
 }
 
-form > h6:after {
+form > h6:after, h6.underlined:after {
 	content: '';
 	display: block;
 	width: 100%;
@@ -115,18 +115,27 @@ span.separator:after {
 	/* makes sure it stays on top */
 }
 
-#status {
-	width: 200px;
-	height: 200px;
+.loader {
 	position: absolute;
-	left: 50%;
-	/* centers the loading animation horizontally one the screen */
-	top: 50%;
-	/* centers the loading animation vertically one the screen */
-	background-image: url('https://raw.githubusercontent.com/niklausgerber/PreLoadMe/master/img/status.gif'); 
-	/* path to your loading animation */
-	background-repeat: no-repeat;
-	background-position: center;
-	margin: -100px 0 0 -100px;
-	/* is width and height divided by two */
+	top: 45%;
+	left: 47%;
+
+  width: 70px;
+  height: 70px;
+  border: 10px solid #eee;
+  border-top: 10px solid #666;
+  border-radius: 50%;
+  animation-name: girar;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes girar {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

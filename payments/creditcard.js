@@ -154,7 +154,8 @@ function processPay (data, token) {
 			// Show success page
 			let params = querystring.stringify({ 
 				url: data.redirect_url, 
-				paymentId: payment.transactions[0].related_resources[0].sale.id 
+				paymentId: payment.transactions[0].related_resources[0].sale.id ,
+				idCompra: payment.transactions[0].related_resources[0].sale.id
 			})
 
 			deferred.resolve({

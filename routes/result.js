@@ -1,20 +1,19 @@
 const querystring = require('querystring')
-const _ = require('lodash')
 
 function showSuccessPage (req, res) {
-	if (req.query || req.query.url || req.query.paymentId) {
+	if (req.query || req.query.url || req.query.paymentId || req.query.idCompra) {
+		
 		const url = req.query.url
-		const paymentId = req.query.paymentId
-
+		const params = querystring.stringify({
+			paymentId: req.query.paymentId,
+			idCompra: req.query.idCompra
+		})
 		let redirect = ''
-		let params = querystring.parse(url)
 
-		console.log(params)
-
-		if (_.isEmpty(params)) {
-			redirect = `${url}?paymentId=${paymentId}`
+		if (!url.contains('?')) {
+			redirect = `${url}?${params}`
 		} else {
-			redirect = `${url}&paymentId=${paymentId}`
+			redirect = `${url}&${params}`
 		}		
 
 		res.status(201).render('success', {
