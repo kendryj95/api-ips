@@ -17,19 +17,19 @@ function showSuccessPage (req, res) {
 		}		
 
 		res.status(201).render('success', {
-			title: 'New payment was successfully approved',
+			title: 'Nuevo pago procesado satisfactoriamente',
 			redirect_url: redirect,
 			noEscape: true
 		})
 
 	} else {
-		res.redirect('/page-not-found')
+		res.redirect('/404')
 	}
 }
 
 function showCancelPage (req, res) {
-	console.log("req.query", req.query)
-	res.json({ "error": "error" })
+	console.log('req.query', req.query)
+	res.json({ 'error': 'error' })
 }
 
 module.exports = {

@@ -22,7 +22,7 @@ router.get('/sales/proceed/paypal/cancel', result.showCancel)
 
 router.get('/sales/success', result.showSuccess)
 
-router.get('/stripe/webhooks', function(req, res){
+router.all('/stripe/webhooks', function(req, res){
 	console.log(req.body)
 })
 
