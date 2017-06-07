@@ -1,6 +1,6 @@
 const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
 const Q = require('q')
-const moment = require('moment')
+//const moment = require('moment')
 const db = require('../../config/db')
 
 function processPayment (data) {
@@ -31,14 +31,15 @@ function processPayment (data) {
 				} 
 			})
 		}
-
+					
 		stripe.charges.create({
 			amount: String(data.purchase.total).replace('.',''),
 			currency: data.purchase.currency.toLowerCase(),
+			description: 'test',
 			source: source.id
 		}, (err, charge) => {
 			if (err) {
-				deferred.reject({ 
+				deferred.reject({
 					'title': 'No se ha podido procesar el pago con éxito', 
 					'error': {
 						'status': 500,
@@ -49,15 +50,111 @@ function processPayment (data) {
 				})
 			}
 
-			deferred.resolve({ charge, source })
+			saveOnDB(data, charge, source).then(d => {
+				deferred.resolve({ charge, source })
+			}).catch(err => {
+				deferred.reject(err)
+			})
+
 		})
 	})
 
-	//Save on ips db
+	return deferred.promise
+}
 
+function saveOnDB (data, source, charge) {
+	const deferred = Q.defer()
 
-	//Save on sms db
+	db.pool.ips.getConnection((err, con) => {
+		if (err) {
+			defer.reject({
+				title: 'ERROR',
+				error: {
+					'status': 500,
+					'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
+					'error_code': 38,
+					'error': err
+				}
+			})
+		}
 
+		data.purchase.products.forEach(o => {
+			con.query(
+				{
+					sql: 'INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_compra, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, 3, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+					timeout: 3000
+				},
+				[
+					'completed',
+					'approved',
+					data.purchase.currency,
+					o.price,
+					o.quantity,
+					data.client.email,
+					charge.id,
+					source.id,
+					o.id,
+					data.token.cliente.id,
+					data.token.cliente.sc,
+					`${o.type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${o.description}`,
+					data.redirect_url,
+					data.client.email,
+					data.client.telephone
+				],
+				(err, result) => {
+					if (err) {
+						defer.reject({
+						title: 'ERROR',
+							error: {
+								'status': 500,
+								'message': 'Ha ocurrido un error tratando de manipular la base de datos',
+								'error_code': 39,
+								'error': err
+							}
+					})
+					}
+				}
+			)
+		})
+
+		con.release()
+	})
+
+	db.pool.insignia.getConnection((err, con) => {
+		if (err) deferred.reject({
+			title: 'ERROR',
+			error: {
+				'status': 500,
+				'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
+				'error_code': 40,
+				'error': err
+			}
+		})
+
+		data.purchase.products.forEach(o => {
+			con.query(
+				{
+					sql: 'SELECT * FROM smsin WHERE id_sms LIKE \'%IPS%\'',
+					//timeout: 3000
+				},
+				//[],
+				(err, result) => {
+					if (err) deferred.reject({
+						title: 'ERROR',
+						error: {
+							'status': 500,
+							'message': 'Ha ocurrido un error tratando de manipular la base de datos',
+							'error_code': 41,
+							'error': err
+						}
+					})
+				}
+			)
+		})
+		con.release()
+	})
+
+	deferred.resolve('betaa')	
 
 	return deferred.promise
 }
@@ -65,9 +162,12 @@ function processPayment (data) {
 module.exports = function (req, res) {
 	if (req.body) {
 
-		const exp_month = moment(req.body.stripe_cc_edate).format('MM'),
-					exp_year = moment(req.body.stripe_cc_edate).format('YYYY'),
-					purchase = JSON.parse(req.body.purchase)
+		const exp_month = String(req.body.stripe_cc_edate).split('/')[1],
+					exp_year = String(req.body.stripe_cc_edate).split('/')[0],
+					purchase = JSON.parse(req.body.purchase),
+					token = require('../../enviroments/token').getTokenDecoded(req.body.token),
+					redirect_url = String(req.body.redirect_url),
+					client = { email: String(req.body.email), telephone: String(req.body.telephone) }
 
 		const data = {
 			card: {
@@ -81,16 +181,19 @@ module.exports = function (req, res) {
 					}
 				}
 			},
-			purchase
+			purchase,
+			token,
+			redirect_url,
+			client
 		}
 
 		processPayment(data)
-			.then(data => {
-				res.json(data)
-			})
-			.catch(error => {
-				res.status(error.error.status).render('error', error)
-			})
+		.then(data => {
+			res.json(data)
+		})
+		.catch(error => {
+			res.status(error.error.status).render('error', error)
+		})
 
 	} else {
 		res.status(400).render('error', {

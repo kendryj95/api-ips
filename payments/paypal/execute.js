@@ -7,6 +7,18 @@ function saveOnDatabase (payment, paymentId) {
 	const deferred = Q.defer()
 
 	db.pool.ips.getConnection((err, con) => {
+		if (err) {
+			deferred.reject({
+				title: 'ERROR',
+				error: {
+					'status': 500,
+					'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
+					'error_code': 37,
+					'error': err
+				}
+			})
+		}
+
 		con.query(
 			'SELECT p.id_pago AS id, p.sms_id, p.sms_sc, p.sms_contenido, p.id_producto_insignia AS id_producto, p.redirect_url, p.consumidor_email, p.consumidor_telefono FROM insignia_payments_solutions.pagos p WHERE p.estado_pago = \'esperando_confirmacion\' AND p.id_api_call = \''+paymentId+'\'',
 			(error, results, fields) => {
