@@ -1,6 +1,6 @@
 const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
 const Q = require('q')
-//const moment = require('moment')
+const querystring = require('querystring')
 const db = require('../../config/db')
 
 function processPayment (data) {
@@ -50,8 +50,16 @@ function processPayment (data) {
 				})
 			}
 
+			// Crear parametros para la url
+			let params = querystring.stringify({ 
+				url: data.redirect_url, 
+				paymentId: source.id,
+				idCompra: charge.id
+			})
+			let approval_url = `/sales/success?${params}`
+
 			saveOnDB(data, charge, source).then(d => {
-				deferred.resolve({ charge, source })
+				deferred.resolve({ charge, source, approval_url })
 			}).catch(err => {
 				deferred.reject(err)
 			})
@@ -134,10 +142,18 @@ function saveOnDB (data, source, charge) {
 		data.purchase.products.forEach(o => {
 			con.query(
 				{
-					sql: 'SELECT * FROM smsin WHERE id_sms LIKE \'%IPS%\'',
-					//timeout: 3000
+					sql: 'INSERT INTO smsin (id_sms, origen, sc, contenido, estado, data_arrive, time_arrive, desp_op, id_producto) VALUES (?, ?, ?, ?, ?, CURDATE(), CURTIME(), ?, ?)',
+					timeout: 3000
 				},
-				//[],
+				[
+					data.token.cliente.id,
+					data.token.cliente.origen,
+					data.token.cliente.sc,
+					`${o.type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${o.description}`,
+					1,
+					'STRIPE_CREDITCARD',
+					o.id
+				],
 				(err, result) => {
 					if (err) deferred.reject({
 						title: 'ERROR',
@@ -154,7 +170,10 @@ function saveOnDB (data, source, charge) {
 		con.release()
 	})
 
-	deferred.resolve('betaa')	
+	deferred.resolve({
+		status: 201,
+		message: 'Se ha procesado el pago correctamente.'
+	})	
 
 	return deferred.promise
 }
@@ -189,7 +208,25 @@ module.exports = function (req, res) {
 
 		processPayment(data)
 		.then(data => {
-			res.json(data)
+			// Enviar notificación por email
+			let mail = {
+				to: client.email,
+				subject: 'Nuevo pago procesado satisfactoriamente',
+				template: 'new_pay',
+				context: {
+					email: client.email,
+				},
+				callback: (error, info) => {
+					if (error) 
+						console.log(error)
+					else 
+						console.log('Message %s sent: %s', info.messageId, info.response)
+				}
+			}
+			require('../../enviroments/notifications/new')(mail)
+
+			//Redireccionar pagina de success
+			res.redirect(data.approval_url)
 		})
 		.catch(error => {
 			res.status(error.error.status).render('error', error)
