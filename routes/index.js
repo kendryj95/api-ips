@@ -33,6 +33,14 @@ router.all('/stripe/webhooks', function(req, res){
 	console.log('==========================================================')
 	console.log(req.body)
 	console.log('==========================================================')
+
+	if (req.body) {
+		const webhook = req.body
+
+		if (webhook.type === 'source.chargeable' && webhook.data.type === 'bitcoin') {
+			console.log('chargeable')
+		}
+	}
 })
 
 module.exports = router

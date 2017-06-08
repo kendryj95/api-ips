@@ -96,7 +96,6 @@ function savePaymentOnIPS (data, source) {
 	return deferred.promise
 }
 
-
 module.exports = (req, res) => {
 	if (req.body.purchase && req.body.token && req.body.redirect_url && req.body.email && req.body.telephone && req.body.bitcoin_owner_email) {
 
