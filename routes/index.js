@@ -36,9 +36,9 @@ router.all('/stripe/webhooks', function(req, res){
 		const webhook = req.body
 
 		console.log(webhook.type)
-		console.log(webhook.data)
+		console.log(webhook.data.source.type)
 
-		if (webhook.type === 'source.chargeable' && webhook.data.type === 'bitcoin') {
+		if (webhook.type === 'source.chargeable' && webhook.data.source.type === 'bitcoin') {
 			console.log('chargeable')
 		}
 	}
