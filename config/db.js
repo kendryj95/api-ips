@@ -1,4 +1,9 @@
-var mysql = require('mysql')
+const mysql = require('mysql')
+const Promise = require('bluebird')
+
+Promise.promisifyAll(mysql)
+Promise.promisifyAll(require("mysql/lib/Connection").prototype)
+Promise.promisifyAll(require("mysql/lib/Pool").prototype)
 
 const con_insignia = mysql.createConnection({
 	host: '138.186.176.49',
@@ -50,6 +55,12 @@ con_ips_pool.on('release', function (connection) {
 	console.log('IPS DB: MySQL Connection %d released', connection.threadId);
 })
 
+function getConnectionIpsPromisifed () {
+	return con_ips_pool.getConnectionAsync().disposer(connection => {
+		connection.release()
+	})
+}
+
 module.exports = {
 	pool: {
 		insignia: con_insignia_pool,
@@ -58,5 +69,8 @@ module.exports = {
 	connection: {
 		insignia: con_insignia,
 		ips: con_ips
+	},
+	promise: {
+		ips: getConnectionIpsPromisifed
 	}
 }

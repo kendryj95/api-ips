@@ -78,7 +78,11 @@ module.exports = {
 			execute: require('../payments/paypal').execute
 		},
 		stripe: {
-			creditcard: require('../payments/stripe/creditcard')
+			creditcard: require('../payments/stripe/creditcard'),
+			bitcoin: {
+				prepare: require('../payments/stripe/bitcoin/prepare'),
+				process: require('../payments/stripe/bitcoin/process')
+			}
 		}
 	}
 }

@@ -48,21 +48,21 @@ function processPayment (data) {
 						'error': err
 					} 
 				})
-			}
+			} else {
+				// Crear parametros para la url
+				let params = querystring.stringify({ 
+					url: data.redirect_url, 
+					paymentId: source.id,
+					idCompra: charge.id
+				})
+				let approval_url = `/sales/success?${params}`
 
-			// Crear parametros para la url
-			let params = querystring.stringify({ 
-				url: data.redirect_url, 
-				paymentId: source.id,
-				idCompra: charge.id
-			})
-			let approval_url = `/sales/success?${params}`
-
-			saveOnDB(data, charge, source).then(d => {
-				deferred.resolve({ charge, source, approval_url })
-			}).catch(err => {
-				deferred.reject(err)
-			})
+				saveOnDB(data, charge, source).then(d => {
+					deferred.resolve({ charge, source, approval_url })
+				}).catch(err => {
+					deferred.reject(err)
+				})
+			}			
 
 		})
 	})
@@ -84,89 +84,96 @@ function saveOnDB (data, source, charge) {
 					'error': err
 				}
 			})
-		}
-
-		data.purchase.products.forEach(o => {
-			con.query(
-				{
-					sql: 'INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_compra, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, 4, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-					timeout: 3000
-				},
-				[
-					'completed',
-					'approved',
-					data.purchase.currency,
-					o.price,
-					o.quantity,
-					data.client.email,
-					charge.id,
-					source.id,
-					o.id,
-					data.token.cliente.id,
-					data.token.cliente.sc,
-					`${o.type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${o.description}`,
-					data.redirect_url,
-					data.client.email,
-					data.client.telephone
-				],
-				(err, result) => {
-					if (err) {
-						defer.reject({
-						title: 'ERROR',
-							error: {
-								'status': 500,
-								'message': 'Ha ocurrido un error tratando de manipular la base de datos',
-								'error_code': 39,
-								'error': err
-							}
-					})
+		} else {
+			data.purchase.products.forEach(o => {
+				con.query(
+					{
+						sql: 'INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_compra, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, 4, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+						timeout: 3000
+					},
+					[
+						'completed',
+						'approved',
+						data.purchase.currency,
+						o.price,
+						o.quantity,
+						data.client.email,
+						charge.id,
+						source.id,
+						o.id,
+						data.token.cliente.id,
+						data.token.cliente.sc,
+						`${o.type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${o.description}`,
+						data.redirect_url,
+						data.client.email,
+						data.client.telephone
+					],
+					(err, result) => {
+						if (err) {
+							defer.reject({
+							title: 'ERROR',
+								error: {
+									'status': 500,
+									'message': 'Ha ocurrido un error tratando de manipular la base de datos',
+									'error_code': 39,
+									'error': err
+								}
+						})
+						}
 					}
-				}
-			)
-		})
+				)
+			})
+		}
 
 		con.release()
 	})
 
 	db.pool.insignia.getConnection((err, con) => {
-		if (err) deferred.reject({
-			title: 'ERROR',
-			error: {
-				'status': 500,
-				'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
-				'error_code': 40,
-				'error': err
-			}
-		})
-
-		data.purchase.products.forEach(o => {
-			con.query(
-				{
-					sql: 'INSERT INTO smsin (id_sms, origen, sc, contenido, estado, data_arrive, time_arrive, desp_op, id_producto) VALUES (?, ?, ?, ?, ?, CURDATE(), CURTIME(), ?, ?)',
-					timeout: 3000
-				},
-				[
-					data.token.cliente.id,
-					data.token.cliente.origen,
-					data.token.cliente.sc,
-					`${o.type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${o.description}`,
-					1,
-					'STRIPE_CREDITCARD',
-					o.id
-				],
-				(err, result) => {
-					if (err) deferred.reject({
-						title: 'ERROR',
-						error: {
-							'status': 500,
-							'message': 'Ha ocurrido un error tratando de manipular la base de datos',
-							'error_code': 41,
-							'error': err
-						}
-					})
+		if (err) {
+			deferred.reject({
+				title: 'ERROR',
+				error: {
+					'status': 500,
+					'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
+					'error_code': 40,
+					'error': err
 				}
-			)
-		})
+			})
+			return
+		} else {
+			data.purchase.products.forEach(o => {
+				con.query(
+					{
+						sql: 'INSERT INTO smsin (id_sms, origen, sc, contenido, estado, data_arrive, time_arrive, desp_op, id_producto) VALUES (?, ?, ?, ?, ?, CURDATE(), CURTIME(), ?, ?)',
+						timeout: 3000
+					},
+					[
+						data.token.cliente.id,
+						data.token.cliente.origen,
+						data.token.cliente.sc,
+						`${o.type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${o.description}`,
+						1,
+						'STRIPE_CREDITCARD',
+						o.id
+					],
+					(err, result) => {
+						if (err) {
+							deferred.reject({
+								title: 'ERROR',
+								error: {
+									'status': 500,
+									'message': 'Ha ocurrido un error tratando de manipular la base de datos',
+									'error_code': 41,
+									'error': err
+								}
+							})
+							return
+						}
+					}
+				)
+			})
+		}
+
 		con.release()
 	})
 
@@ -178,8 +185,8 @@ function saveOnDB (data, source, charge) {
 	return deferred.promise
 }
 
-module.exports = function (req, res) {
-	if (req.body) {
+module.exports = (req, res) => {
+	if (req.body.purchase && req.body.token && req.body.redirect_url && req.body.email && req.body.telephone && req.body.stripe_cc_edate && req.body.stripe_cc_number && req.body.stripe_cc_cvv && req.body.stripe_cc_zip) {
 
 		const exp_month = String(req.body.stripe_cc_edate).split('/')[1],
 					exp_year = String(req.body.stripe_cc_edate).split('/')[0],

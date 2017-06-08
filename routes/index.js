@@ -16,6 +16,10 @@ router.post('/v1/sales/pay/paypal', sales.pay.paypal.prepare)
 
 router.post('/v1/sales/pay/stripe/creditcard', sales.pay.stripe.creditcard)
 
+router.post('/v1/sales/pay/stripe/bitcoin/prepare', sales.pay.stripe.bitcoin.prepare)
+
+router.get('/sales/pay/stripe/bitcoin/process', sales.pay.stripe.bitcoin.process)
+
 router.get('/sales/proceed/paypal/success', sales.pay.paypal.execute)
 
 router.get('/sales/proceed/paypal/cancel', result.showCancel)

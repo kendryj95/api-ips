@@ -11,6 +11,7 @@
   "author": "Insigina Mobile Communications, C.A.",
   "license": "UNLICENSED",
   "dependencies": {
+    "bluebird": "^3.5.0",
     "body-parser": "^1.17.1",
     "cors": "^2.8.3",
     "currency-formatter": "^1.2.1",
