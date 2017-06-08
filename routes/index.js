@@ -27,7 +27,12 @@ router.get('/sales/proceed/paypal/cancel', result.showCancel)
 router.get('/sales/success', result.showSuccess)
 
 router.all('/stripe/webhooks', function(req, res){
+
+	console.log('==========================================================')
+	console.log('S T R I P E   W E B   H O O K')
+	console.log('==========================================================')
 	console.log(req.body)
+	console.log('==========================================================')
 })
 
 module.exports = router
