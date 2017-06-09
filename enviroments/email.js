@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer')
 const hbs = require('nodemailer-express-handlebars')
+const Q = require('q')
 
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
@@ -51,6 +52,39 @@ function newMail (to, subject, template, context, callback) {
 	transporter.sendMail(mailOptions, callback)
 }
 
+function newMailAsync (to, subject, template, context) {
+	const deferred = Q.defer()
+
+	let mailOptions = {
+		from: '"Insignia Payment Solutions" <notificaciones@insignia.com.ve>',
+		to,
+		subject,
+		template,
+		context
+	}
+
+	if (template === 'new_pay') {
+		mailOptions.attachments = [
+			{
+				filename: 'logo.png',
+				href: 'http://imgur.com/qHMk01i',
+				cid: 'notificaciones@insignia.com.ve'
+			}
+		]
+	}
+
+	transporter.sendMail(mailOptions, (error, success) => {
+		if (error) {
+			deferred.reject(error)
+		} else {
+			deferred.resolve(success)
+		}
+	})
+
+	return deferred.promise
+}
+
 module.exports = {
-	new: newMail
+	new: newMail,
+	newAsync: newMailAsync
 }
