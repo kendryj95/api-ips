@@ -29,7 +29,7 @@ function handleDB (id_api_call, status) {
 								'UPDATE pagos SET estado_pago = ? WHERE id_api_call = ?',
 								[
 									status,
-									id_api_callid
+									id_api_call
 								],
 								(err, result) => {
 									if (err) {
@@ -74,7 +74,7 @@ function handleChargeable (webhook) {
 	const status      = 'chargeable',
 				id_api_call = webhook.data.object.id
 
-	handleDB(id_api_callid, status).then(result => {
+	handleDB(id_api_call, status).then(result => {
 
 		const email = {
 			to: result.client.email,
