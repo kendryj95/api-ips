@@ -1,8 +1,6 @@
 
 module.exports = (req, res) => {
-
-
-
+	
 	res.render('bitcoin', {
 		title: 'Pago de bitcoin con stripe',
 		data: {

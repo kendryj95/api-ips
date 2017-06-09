@@ -18,7 +18,7 @@ router.post('/v1/sales/pay/stripe/creditcard', sales.pay.stripe.creditcard)
 
 router.post('/v1/sales/pay/stripe/bitcoin/prepare', sales.pay.stripe.bitcoin.prepare)
 
-router.get('/sales/pay/stripe/bitcoin/process', sales.pay.stripe.bitcoin.process)
+router.get('/sales/pay/stripe/bitcoin/execute', sales.pay.stripe.bitcoin.execute)
 
 router.get('/sales/proceed/paypal/success', sales.pay.paypal.execute)
 
@@ -35,12 +35,8 @@ router.all('/stripe/webhooks', function(req, res){
 	if (req.body) {
 		const webhook = req.body
 
-		console.log(webhook.type)
-		console.log(webhook.data.source)
+		console.log(webhook)
 
-		if (webhook.type === 'source.chargeable') {
-			console.log('chargeable')
-		}
 	}
 })
 

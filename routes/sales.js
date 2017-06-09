@@ -10,7 +10,7 @@ module.exports = {
 			creditcard: require('../payments/stripe/creditcard'),
 			bitcoin: {
 				prepare: require('../payments/stripe/bitcoin/prepare'),
-				process: require('../payments/stripe/bitcoin/process')
+				execute: require('../payments/stripe/bitcoin/execute')
 			}
 		}
 	}
