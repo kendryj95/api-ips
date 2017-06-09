@@ -19,4 +19,44 @@ for (var i = datesInputs.length - 1; i >= 0; i--) {
 
 
 $(function(){
+
+	$('#stripe_form_bitcoin').submit(function(e){
+		e.preventDefault();
+
+		$('#stripe_form_bitcoin').on('forminvalid.zf.abide', function(ev,elem) {
+			console.log('form invalid');
+		});
+
+		$('#stripe_form_bitcoin').on('formvalid.zf.abide', function(ev,elem) {
+			var $btc_email = $('#bitcoin_owner_email').val(),
+					$email_consumidor = $('#email').val(),
+					$phone_consumidor = $('#telephone').val(),
+					$purchase = $('#btc_purchase').val(),
+					$redirect_url = $('#btc_redirect_url').val(),
+					$token = $('#btc_token').val();
+
+			$.post(
+				'/v1/sales/pay/stripe/bitcoin/prepare', 
+				{
+					purchase: $purchase,
+					token: $token,
+					redirect_url: $redirect_url,
+					email: $email_consumidor,
+					telephone: $phone_consumidor,
+					bitcoin_owner_email: $btc_email
+				},
+				function(data){
+					console.log(data);
+					$('#btc_price').text(parseInt(data.res.bitcoin.amount)/100000000);
+					$('#btc_address').text(data.res.bitcoin.address);
+					$('#btc_email_client').text(data.client.email),
+					$('#btc_wallet').attr('href', data.res.bitcoin.uri);
+					$('#bitcoin_result').foundation('open');
+				}
+			);
+		});
+		
+
+	});
+
 });

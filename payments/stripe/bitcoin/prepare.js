@@ -2,7 +2,6 @@ const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
 const Q = require('q')
 const querystring = require('querystring')
 const db = require('../../../config/db')
-//const async = require('async')
 
 function preparePayment (data) {
 	const deferred = Q.defer()
@@ -114,8 +113,7 @@ module.exports = (req, res) => {
 
 		preparePayment(data)
 		.then(result => {
-			let params = querystring.stringify({ monedero: result.bitcoin.uri, source: result.id, address: result.receiver.address })
-			res.redirect(`/sales/pay/stripe/bitcoin/process?${params}`)
+			res.json({ res: result, client: data.client })
 		})
 		.catch(error => {
 			res.status(error.error.status).render('error', error)

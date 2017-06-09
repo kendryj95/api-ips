@@ -1,0 +1,29 @@
+body {
+	min-width: 100vw;
+	min-height: 100vh;
+	width: 100vw;
+	height: 100vh;
+	max-width: 100vw;
+	max-height: 100vh;
+
+	display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #E6E8E8;
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 0.9rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Open Sans', sans-serif;
+}
+
+body > .contenedor {
+	width: 80%;
+}
+
+.info {
+	background-color: #fff;
+	padding: 30px;
+}

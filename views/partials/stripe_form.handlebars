@@ -91,11 +91,14 @@
 	<li class="accordion-item " data-accordion-item>
 		<a href="#" class="accordion-title">Bitcoin</a>
 		<div class="accordion-content" data-tab-content>
+
+			<img src="/public/images/bitcoin.png" alt="Pagar con bitcoin" style="display: block; margin: 20px auto; max-width: 350px;">
+
 			<form action="sales/pay/stripe/bitcoin/prepare" method="post" enctype="application/json" id="stripe_form_bitcoin" data-abide novalidate>
 		
-				<input type="hidden" name="purchase" value="{{json purchase}}">
-				<input type="hidden" name="redirect_url" value="{{return_url}}">
-				<input type="hidden" name="token" value="{{token}}">
+				<input type="hidden" name="purchase" id="btc_purchase" value="{{json purchase}}">
+				<input type="hidden" name="redirect_url" id="btc_redirect_url" value="{{return_url}}">
+				<input type="hidden" name="token" id="btc_token" value="{{token}}">
 
 				<div data-abide-error class="alert callout" style="display: none;">
 					<p><i class="fi-alert"></i> Porfavor complete todos los campos correctamente.</p>
@@ -125,11 +128,30 @@
 
 					<button type="submit" value="Submit" class="button alert float-right">Procesar pago con stripe</button>
 				</div>
-
-				<div class="clearfix">
-					<p class="float-right">No guardamos ningún dato de tu tarjeta de cŕedito.</p>
-				</div>
 			</form>
+		</div>
+
+		<!-- This is the first modal -->
+		<div class="reveal small" id="bitcoin_result" data-reveal data-animation-in = "fade-in" data-animation-out = "fade-out">
+
+			<h6 class="underlined">Porfavor, realice su pago antes de continuar.</h6>
+
+			<img src="/public/images/bitcoin.png" alt="Pagar con bitcoin" style="display: block; margin: 20px auto; max-width: 350px;">
+
+			<p class="text-justify">Para continuar con su compra debe realizar un pago de <b>BTC <span id="btc_price"></span></b> desde su monedero de bitcoin a la siguiente dirección:</p>
+			
+			<div class="callout secondary">
+				<h5 class="text-center" id="btc_address">asdasdasdasdasdklajsdflkas_asdkasjd</h5>
+			</div>
+
+			<p class="text-justify">Una vez realizado el pago recibirá un email a la siguiente dirección: <b><span id="btc_email_client"></span></b>, con los pasos necesarios para completar su compra.</p>
+
+			<a href="#" class="button alert" id="btc_wallet" style="display: block; margin: 0 auto;">Abrir monedero</a>
+
+			{{! -- Close button -- }}
+			<button class="close-button" data-close aria-label="Close reveal" type="button">
+				<span aria-hidden="true">&times;</span>
+			</button>
 		</div>
 	</li>
 	<li class="accordion-item " data-accordion-item>

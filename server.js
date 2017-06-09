@@ -64,8 +64,6 @@ app.use('/', require('./routes/'))
 
 app.all('/*', (req, res) => {
 
-	console.log(require('querystring').parse('https://www.youtube.com/watch?v=yqem6k_3pZ8'))
-
 	res.status(404).render('error', {
 		title: 'ERROR',
 		error: {
