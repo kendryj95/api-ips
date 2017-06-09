@@ -72,9 +72,7 @@ function handleNotificationsByEmail (data) {
 
 function handleChargeable (webhook) {
 	const status      = 'chargeable',
-				id_api_call = data.webhook.data.object.id,
-	
-
+				id_api_call = data.webhook.data.object.id
 
 	handleDB(id_api_callid, status).then(result => {
 
