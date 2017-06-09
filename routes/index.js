@@ -37,7 +37,7 @@ router.all('/stripe/webhooks', function(req, res){
 
 		console.log(webhook.type)
 
-		console.log(webhook.data.type)
+		console.log(webhook.data)
 
 	}
 
