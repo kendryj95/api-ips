@@ -12,7 +12,7 @@ function handleDB (id_api_call, status) {
 
 			con.query(
 				{
-					sql: 'SELECT * FROM pagos WHERE id_api_call = ?',
+					sql: 'SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?',
 					timeout: 900		
 				},
 				[
@@ -43,8 +43,8 @@ function handleDB (id_api_call, status) {
 						if (!has_error) {
 							deferred.resolve({
 								client: {
-									email: results[0].consumidor_email,
-									phone: results[0].consumidor_telefono
+									email: results[0].email,
+									phone: results[0].phone
 								}
 							})
 						}
