@@ -48,8 +48,8 @@ function handleNotifications (data) {
 	return deferred.promise
 }
 
-function handleChargeable (data) {
-	console.log(data.object.id)
+function handleChargeable (webhook) {
+	console.log(webhook.data.object.id)
 }
 
 module.exports = webhook => {
