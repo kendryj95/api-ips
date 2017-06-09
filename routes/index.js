@@ -35,9 +35,45 @@ router.all('/stripe/webhooks', function(req, res){
 	if (req.body) {
 		const webhook = req.body
 
-		console.log(webhook)
+		console.log(webhook.type)
+
+		console.log(webhook.data.type)
 
 	}
+
 })
+
+/*
+{ 
+	id: 'evt_1ARn9QIN4Xtac0jNqZHObC2f',
+	object: 'event',
+	api_version: '2017-06-05',
+	created: 1496776536,
+	data: { 
+		object: { 
+			id: 'src_1ARn9QIN4Xtac0jNweOnkisC',
+			object: 'source',
+			amount: null,
+			client_secret: 'src_client_secret_dvd6g4rNtT1wpiWaZ1gcdnXG',
+			created: 1496776536,
+			currency: null,
+			flow: 'none',
+			livemode: false,
+			metadata: {},
+			owner: [Object],
+			status: 'chargeable',
+			type: 'card',
+			usage: 'reusable',
+			card: [Object] 
+		} 
+	},
+	livemode: false,
+	pending_webhooks: 1,
+	request: { 
+		id: 'req_AnNvidYIzQPaj3', 
+		idempotency_key: null 
+	},
+	type: 'source.chargeable' 
+}*/
 
 module.exports = router
