@@ -1,6 +1,6 @@
 const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
 const Q = require('q')
-//const querystring = require('querystring')
+const querystring = require('querystring')
 const db = require('../../../config/db')
 
 function getPaypementsRecord (id_api_call) {
@@ -39,6 +39,28 @@ function newCharge (payment, id_api_call) {
 	return deferred.promise
 }
 
+function updatePaymentToCompleted (payment, id_api_call) {
+	const deferred = Q.defer()
+
+	db.connection.ips.query(
+		`UPDATE pagos SET estado_compra = ?, estado_pago = ?, id_compra = ? WHERE id_api_call = ?`,
+		[
+			payment.estado_compra,
+			payment.estado_pago,
+			payment.id,
+			id_api_call
+		],
+		(err, result) => {
+			if (err)
+				deferred.reject(err)
+			else
+				deferred.resolve(result)
+		}
+	)
+
+	return deferred.promise
+}
+
 module.exports = (req, res) => {
 	if (req.query.id_api_call) {
 		const id_api_call = req.query.id_api_call
@@ -56,13 +78,39 @@ module.exports = (req, res) => {
 				amount = amount.toFixed(2)
 
 			newCharge({ amount, currency: result[0].moneda }, id_api_call).then(data => {
-				res.json(data)
+
+				updatePaymentToCompleted({
+					estado_compra: 'completed',
+					estado_pago: 'approved',
+					id: data.id
+				}, id_api_call).then(res => {
+					
+					// Redireccionar a pagina de exito
+					res.status(200).redirect('/sales/success?'+querystring.stringify({
+						url: result[0].redirect_url,
+						paymentId: id_api_call,
+						idCompra: data.id
+					}))
+
+				}).catch(error => {
+					res.status(500).render('error', {
+						title: 'No se ha podido completar su pago',
+						error: {
+							status: 500,
+							message: 'No se ha podido actualizar su pago en la base de datos.',
+							error_status: 48,
+							error
+						}
+					})
+				})
+
+
 			}).catch(error => {
 				res.render('error', {
-					title: 'Stripe error',
+					title: 'No se ha podido procesar su pago',
 					error: {
-						status: 500,
-						message: 'Error al procesar consulta en la base de datos.',
+						status: 400,
+						message: 'La pasarela stripe ha devuelto un error.',
 						error_status: 47,
 						error	
 					}
@@ -70,7 +118,15 @@ module.exports = (req, res) => {
 			})
 
 		}).catch(error => {
-			console.log(error)
+			res.status(500).render('error', {
+				title: 'No se ha podido procesar su pago',
+				error: {
+					status: 500,
+					message: 'No se ha podido realizar la conexion con la base de datos.',
+					error_status: 46,
+					error: error
+				}
+			})
 		})
 
 	} else {
