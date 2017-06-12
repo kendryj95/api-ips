@@ -86,6 +86,8 @@ function handleChargeable (webhook) {
 
 	handleDB(id_api_call, status).then(result => {
 
+		console.log(webhook)
+
 		const email = {
 			to: result.client.email,
 			subject: 'Nuevo pago con bitcoin',
