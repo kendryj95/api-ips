@@ -95,7 +95,7 @@ function handleChargeable (webhook) {
 			context: {
 				email: result.client.email,
 				url: `/sales/pay/stripe/bitcoin/execute?id_api_call=${id_api_call}`,
-				amount: (parseInt(webhook.data.bitcoin.amount) / 100000000)
+				amount: (parseInt(webhook.data.object.bitcoin.amount) / 100000000)
 			},
 			attachments: [{
 				filename: 'logo.png',
