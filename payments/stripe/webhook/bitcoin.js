@@ -45,13 +45,14 @@ function handleDB (id_api_call, status) {
 						})
 
 						Q.all(updates).then(result => {
-							console.log("===================================")
-							console.log(result)
 							console.log('===================================')
+							console.log(results)
+							console.log('===================================')
+
 							deferred.resolve({
 								client: {
-									email: result[0].email,
-									phone: result[0].phone
+									email: results[0].email,
+									phone: results[0].phone
 								}
 							})
 						}).catch(error => {
