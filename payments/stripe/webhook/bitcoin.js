@@ -86,8 +86,8 @@ function handleChargeable (webhook, req, res) {
 			},
 			attachments: [{
 				filename: 'logo.png',
-				path: path.resolve('public/images/logo.png')
-				cid: 'beta@beta.com',
+				path: path.resolve('public/images/logo.png'),
+				cid: 'beta@beta.com'
 			}]
 		}
 
