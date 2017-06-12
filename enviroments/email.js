@@ -52,7 +52,7 @@ function newMail (to, subject, template, context, callback) {
 	transporter.sendMail(mailOptions, callback)
 }
 
-function newMailAsync (to, subject, template, context, attachments = {}) {
+function newMailAsync (to, subject, template, context, attachments = []) {
 	const deferred = Q.defer()
 
 	let mailOptions = {

@@ -84,11 +84,11 @@ function handleChargeable (webhook, req, res) {
 			context: {
 				email: result.client.email
 			},
-			attachments: {
+			attachments: [{
 				cid: 'logo',
 				filename: 'logo.png',
 				path: path.resolve('public/images/logo.png')
-			}
+			}]
 		}
 
 		handleNotificationsByEmail(email).then(r => {
