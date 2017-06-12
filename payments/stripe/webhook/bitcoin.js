@@ -85,9 +85,9 @@ function handleChargeable (webhook, req, res) {
 				email: result.client.email
 			},
 			attachments: [{
-				cid: 'logo',
 				filename: 'logo.png',
 				path: path.resolve('public/images/logo.png')
+				cid: 'beta@beta.com',
 			}]
 		}
 
