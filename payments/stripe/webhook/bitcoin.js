@@ -97,7 +97,7 @@ function handleChargeable (webhook, req, res) {
 		console.log(err)
 	})
 
-	res.send(200)
+	res.sendStatus(200)
 }
 
 function handleCanceled (webhook, req, res) {
@@ -125,7 +125,7 @@ function handleCanceled (webhook, req, res) {
 		console.log(error)
 	})
 
-	res.send(200)
+	res.sendStatus(200)
 }
 
 function handleConsumed (webhook, req, res) {
@@ -153,7 +153,7 @@ function handleConsumed (webhook, req, res) {
 		console.log(error)
 	})
 
-	res.send(200)
+	res.sendStatus(200)
 }
 
 
