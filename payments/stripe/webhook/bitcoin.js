@@ -70,7 +70,7 @@ function handleNotificationsByEmail (data) {
 	return deferred.promise
 }
 
-function handleChargeable (webhook) {
+function handleChargeable (webhook, req, res) {
 	const status      = 'chargeable',
 				id_api_call = webhook.data.object.id
 
@@ -96,9 +96,11 @@ function handleChargeable (webhook) {
 	}).catch(err => {
 		console.log(err)
 	})
+
+	res.send(200)
 }
 
-function handleCanceled (webhook) {
+function handleCanceled (webhook, req, res) {
 	const status      = 'canceled',
 				id_api_call = webhook.data.object.id
 
@@ -122,9 +124,11 @@ function handleCanceled (webhook) {
 	}).catch(error => {
 		console.log(error)
 	})
+
+	res.send(200)
 }
 
-function handleConsumed (webhook) {
+function handleConsumed (webhook, req, res) {
 	const status      = 'consumed',
 				id_api_call = webhook.data.object.id
 
@@ -148,19 +152,21 @@ function handleConsumed (webhook) {
 	}).catch(error => {
 		console.log(error)
 	})
+
+	res.send(200)
 }
 
 
-module.exports = webhook => {
+module.exports = (webhook, req, res) => {
 	switch (webhook.type) {
 		case 'source.chargeable': 
-			handleChargeable(webhook)
+			handleChargeable(webhook, req, res)
 		break
 		case 'source.canceled':
-			handleCanceled(webhook)
+			handleCanceled(webhook, req, res)
 		break
 		case 'source.consumed':
-			handleConsumed(webhook)
+			handleConsumed(webhook, req, res)
 		break
 		default:
 			console.log(webhook.type)
