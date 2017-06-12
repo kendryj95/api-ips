@@ -1,7 +1,6 @@
 const Q = require('q')
 const db = require('../../../config/db')
 const email = require('../../../enviroments/email')
-const fs = require('fs')
 const path = require('path')
 
 function handleDB (id_api_call, status) {
@@ -87,8 +86,8 @@ function handleChargeable (webhook, req, res) {
 			},
 			attachments: {
 				cid: 'logo',
-				filename: 'logo.jpg',
-				content: fs.createReadStream(path.resolve('public/images/logo.png'))
+				filename: 'logo.png',
+				path: path.resolve('public/images/logo.png')
 			}
 		}
 
