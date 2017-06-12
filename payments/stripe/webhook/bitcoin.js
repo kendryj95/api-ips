@@ -98,10 +98,69 @@ function handleChargeable (webhook) {
 	})
 }
 
+function handleCanceled (webhook) {
+	const status      = 'canceled',
+				id_api_call = webhook.data.object.id
+
+	handleDB(id_api_call, status).then(result => {
+
+		const email = {
+			to: result.client.email,
+			subject: 'canceled payment bitcoin webhook',
+			template: 'new_pay',
+			context: {
+				email: result.client.email
+			}
+		}
+
+		handleNotificationsByEmail(email).then(r => {
+			console.log(r)
+		}).catch(err => {
+			console.log(err)
+		})
+
+	}).catch(error => {
+		console.log(error)
+	})
+}
+
+function handleConsumed (webhook) {
+	const status      = 'consumed',
+				id_api_call = webhook.data.object.id
+
+	handleDB(id_api_call, status).then(result => {
+
+		const email = {
+			to: result.client.email,
+			subject: 'consumed payment bitcoin webhook',
+			template: 'new_pay',
+			context: {
+				email: result.client.email
+			}
+		}
+
+		handleNotificationsByEmail(email).then(r => {
+			console.log(r)
+		}).catch(err => {
+			console.log(err)
+		})
+
+	}).catch(error => {
+		console.log(error)
+	})
+}
+
+
 module.exports = webhook => {
 	switch (webhook.type) {
 		case 'source.chargeable': 
 			handleChargeable(webhook)
+		break
+		case 'source.canceled':
+			handleCanceled(webhook)
+		break
+		case 'source.consumed':
+			handleConsumed(webhook)
 		break
 		default:
 			console.log(webhook.type)

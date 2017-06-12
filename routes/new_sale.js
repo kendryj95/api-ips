@@ -49,7 +49,7 @@ module.exports = (req, res) => {
 						}
 					})
 					res.render('new', {
-						title: 'New sale',
+						title: 'Nuevo pago',
 						return_url: redirect_url,
 						purchase,
 						countries,
