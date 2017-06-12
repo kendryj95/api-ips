@@ -96,11 +96,9 @@ function handleChargeable (webhook, req, res) {
 	}).catch(err => {
 		console.log(err)
 	})
-
-	res.sendStatus(200)
 }
 
-function handleCanceled (webhook, req, res) {
+function handleCanceled (webhook) {
 	const status      = 'canceled',
 				id_api_call = webhook.data.object.id
 
@@ -124,11 +122,9 @@ function handleCanceled (webhook, req, res) {
 	}).catch(error => {
 		console.log(error)
 	})
-
-	res.sendStatus(200)
 }
 
-function handleConsumed (webhook, req, res) {
+function handleConsumed (webhook) {
 	const status      = 'consumed',
 				id_api_call = webhook.data.object.id
 
@@ -152,21 +148,19 @@ function handleConsumed (webhook, req, res) {
 	}).catch(error => {
 		console.log(error)
 	})
-
-	res.sendStatus(200)
 }
 
 
-module.exports = (webhook, req, res) => {
+module.exports = (webhook) => {
 	switch (webhook.type) {
 		case 'source.chargeable': 
-			handleChargeable(webhook, req, res)
+			handleChargeable(webhook)
 		break
 		case 'source.canceled':
-			handleCanceled(webhook, req, res)
+			handleCanceled(webhook)
 		break
 		case 'source.consumed':
-			handleConsumed(webhook, req, res)
+			handleConsumed(webhook)
 		break
 		default:
 			console.log(webhook.type)

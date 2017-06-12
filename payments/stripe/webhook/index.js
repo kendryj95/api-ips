@@ -5,12 +5,14 @@ module.exports = (req, res) => {
 
 		switch (webhook.data.object.type) {
 			case 'bitcoin':
-				require('./bitcoin')(webhook, req, res)
+				require('./bitcoin')(webhook)
 			break
 			
 			default:
 				console.log(webhook)
 			break
 		}
+
+		res.sendStatus(200)
 	}
 }
