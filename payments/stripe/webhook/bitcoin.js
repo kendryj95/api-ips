@@ -88,7 +88,7 @@ function handleChargeable (webhook, req, res) {
 			attachments: {
 				cid: 'logo',
 				filename: 'logo.jpg',
-				content: fs.createReadStream(path.resolve('../../../public/images/logo.png'))
+				content: fs.createReadStream(path.resolve('public/images/logo.png'))
 			}
 		}
 
