@@ -8,7 +8,7 @@ function preparePayment (data) {
 
 	stripe.sources.create({
 		type: 'bitcoin',
-		amount: parseInt(String(data.purchase.total).replace('.','')),
+		amount: parseInt(String(data.purchase.total).replace('.','')).toFixed(2),
 		currency: String(data.purchase.currency).toLowerCase(),
 		owner: {
 			email: data.owner.email
