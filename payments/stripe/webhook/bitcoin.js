@@ -80,13 +80,11 @@ function handleNotificationsByEmail (data) {
 	return deferred.promise
 }
 
-function handleChargeable (webhook) {
+function handleChargeable (webhook, url) {
 	const status      = 'chargeable',
 				id_api_call = webhook.data.object.id
 
 	handleDB(id_api_call, status).then(result => {
-
-		console.log(webhook)
 
 		const email = {
 			to: result.client.email,
@@ -94,7 +92,7 @@ function handleChargeable (webhook) {
 			template: 'chargeable_bitcoin',
 			context: {
 				email: result.client.email,
-				url: `/sales/pay/stripe/bitcoin/execute?id_api_call=${id_api_call}`,
+				url: `${url}/sales/pay/stripe/bitcoin/execute?id_api_call=${id_api_call}`,
 				amount: (parseInt(webhook.data.object.bitcoin.amount) / 100000000)
 			},
 			attachments: [{
@@ -169,10 +167,10 @@ function handleConsumed (webhook) {
 	})
 }
 
-module.exports = (webhook) => {
+module.exports = (webhook, url) => {
 	switch (webhook.type) {
 		case 'source.chargeable': 
-			handleChargeable(webhook)
+			handleChargeable(webhook, url)
 		break
 		case 'source.canceled':
 			handleCanceled(webhook)

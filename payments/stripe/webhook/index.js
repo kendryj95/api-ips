@@ -5,7 +5,7 @@ module.exports = (req, res) => {
 
 		switch (webhook.data.object.type) {
 			case 'bitcoin':
-				require('./bitcoin')(webhook)
+				require('./bitcoin')(webhook, `${req.protocol}://${req.get('host')}`)
 			break
 
 			case 'card':
