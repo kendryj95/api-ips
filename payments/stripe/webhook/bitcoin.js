@@ -23,32 +23,40 @@ function handleDB (id_api_call, status) {
 					if (err) {
 						deferred.reject(err)
 					} else {
-						let has_error = false
-						results.forEach(o => {
+						let updates = []
 
-							con.query(
-								'UPDATE pagos SET estado_pago = ? WHERE id_api_call = ?',
-								[
-									status,
-									id_api_call
-								],
-								(err, result) => {
-									if (err) {
-										has_error = true
-										deferred.reject(err)
+						results.forEach(o => {
+							updates.push(new Promise((resolve, reject) => {
+								con.query(
+									'UPDATE pagos SET estado_pago = ? WHERE id_api_call = ?',
+									[
+										status,
+										id_api_call
+									],
+									(err, result) => {
+										if (err) {
+											reject(err)
+										} else {
+											resolve(result)
+										}
 									}
-								}
-							)
+								)
+							}))							
 						})
 
-						if (!has_error) {
+						Q.all(updates).then(result => {
+							console.log("===================================")
+							console.log(result)
+							console.log('===================================')
 							deferred.resolve({
 								client: {
-									email: results[0].email,
-									phone: results[0].phone
+									email: result[0].email,
+									phone: result[0].phone
 								}
 							})
-						}
+						}).catch(error => {
+							deferred.reject(error)
+						})
 					}
 				}
 			)
@@ -71,7 +79,7 @@ function handleNotificationsByEmail (data) {
 	return deferred.promise
 }
 
-function handleChargeable (webhook, req, res) {
+function handleChargeable (webhook) {
 	const status      = 'chargeable',
 				id_api_call = webhook.data.object.id
 
@@ -79,10 +87,12 @@ function handleChargeable (webhook, req, res) {
 
 		const email = {
 			to: result.client.email,
-			subject: 'Procesar nuevo pago',
+			subject: 'Nuevo pago con bitcoin',
 			template: 'chargeable_bitcoin',
 			context: {
-				email: result.client.email
+				email: result.client.email,
+				url: '',
+				amount: ''
 			},
 			attachments: [{
 				filename: 'logo.png',
