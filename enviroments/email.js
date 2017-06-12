@@ -52,7 +52,7 @@ function newMail (to, subject, template, context, callback) {
 	transporter.sendMail(mailOptions, callback)
 }
 
-function newMailAsync (to, subject, template, context) {
+function newMailAsync (to, subject, template, context, attachments = {}) {
 	const deferred = Q.defer()
 
 	let mailOptions = {
@@ -60,17 +60,8 @@ function newMailAsync (to, subject, template, context) {
 		to,
 		subject,
 		template,
-		context
-	}
-
-	if (template === 'new_pay') {
-		mailOptions.attachments = [
-			{
-				filename: 'logo.png',
-				href: 'http://imgur.com/qHMk01i',
-				cid: 'notificaciones@insignia.com.ve'
-			}
-		]
+		context,
+		attachments
 	}
 
 	transporter.sendMail(mailOptions, (error, success) => {

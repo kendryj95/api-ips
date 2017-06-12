@@ -7,6 +7,10 @@ module.exports = (req, res) => {
 			case 'bitcoin':
 				require('./bitcoin')(webhook)
 			break
+
+			case 'card':
+				require('./card')(webhook)
+			break
 			
 			default:
 				console.log(webhook)

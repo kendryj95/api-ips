@@ -1,6 +1,8 @@
 const Q = require('q')
 const db = require('../../../config/db')
 const email = require('../../../enviroments/email')
+const fs = require('fs')
+const path = require('path')
 
 function handleDB (id_api_call, status) {
 	const deferred = Q.defer()
@@ -78,10 +80,15 @@ function handleChargeable (webhook, req, res) {
 
 		const email = {
 			to: result.client.email,
-			subject: 'test webhook',
-			template: 'new_pay',
+			subject: 'Procesar nuevo pago',
+			template: 'chargeable_bitcoin',
 			context: {
 				email: result.client.email
+			},
+			attachments: {
+				cid: 'logo',
+				filename: 'logo.jpg',
+				content: fs.createReadStream(path.resolve('../../../public/images/logo.png'))
 			}
 		}
 
@@ -149,7 +156,6 @@ function handleConsumed (webhook) {
 		console.log(error)
 	})
 }
-
 
 module.exports = (webhook) => {
 	switch (webhook.type) {
