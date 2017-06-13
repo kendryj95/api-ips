@@ -2,7 +2,7 @@ const Q = require('q')
 const db = require('../../../config/db')
 const email = require('../../../enviroments/email')
 
-function handleDB (id_api_call, status) {
+function handleDB (id_api_call, status, estado_compra = 'esperando_confirmacion') {
 	const deferred = Q.defer()
 
 	db.pool.ips.getConnection((err, con) => {

@@ -51,10 +51,13 @@ function updatePaymentToCompleted (payment, id_api_call) {
 			id_api_call
 		],
 		(err, result) => {
-			if (err)
+			if (err) {
+				console.log("error en update")
+				console.log(err)
 				deferred.reject(err)
-			else
+			} else {
 				deferred.resolve(result)
+			}
 		}
 	)
 

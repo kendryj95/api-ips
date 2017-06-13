@@ -149,10 +149,11 @@ function handleCanceled (webhook) {
 }
 
 function handleConsumed (webhook) {
-	const status      = 'consumed',
-				id_api_call = webhook.data.object.id
+	const status        = 'approved',
+				id_api_call   = webhook.data.object.id,
+				estado_compra = 'completed'
 
-	handleDB(id_api_call, status).then(result => {
+	handleDB(id_api_call, status, estado_compra).then(result => {
 		console.log(result)
 	}).catch(error => {
 		console.log(error)

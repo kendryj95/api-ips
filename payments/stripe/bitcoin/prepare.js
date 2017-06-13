@@ -46,7 +46,7 @@ function savePaymentOnIPS (data, source) {
 
 	let savePerOne = o => {
 		return new Promise((resolve, reject) => {
-			let query = `INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES ('elbeta', 6, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+			let query = `INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, 6, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 			let params = [
 				'esperando_pago',
 				source.status,
@@ -74,23 +74,18 @@ function savePaymentOnIPS (data, source) {
 		})
 	}
 
+	let perOne = []
+
 	for (var i = data.purchase.products.length - 1; i >= 0; i--) {
 		const o = data.purchase.products[i]
-
-		let has_error = false
-		
-		savePerOne(o).then(r => {
-			console.log(r)
-		}, err => {
-			has_error = true
-			deferred.reject(err)
-		})
-
-		if (has_error)
-			break
-		else 
-			deferred.resolve('beta')
+		perOne.push(savePerOne(o))
 	}
+
+	Q.all(perOne).then(result => {
+		deferred.resolve(result)
+	}).catch(error => {
+		deferred.reject(error)
+	})
 
 	return deferred.promise
 }
