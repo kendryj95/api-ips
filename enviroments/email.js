@@ -23,7 +23,7 @@ const config = {
 		 extname: '.hbs',
 		 layoutsDir: 'views/email/',
 		 defaultLayout : 'template',
-		 partialsDir : 'views/partials/'
+		 partialsDir : 'views/email/partials/'
  },
  viewPath: 'views/email/',
  extName: '.hbs'
