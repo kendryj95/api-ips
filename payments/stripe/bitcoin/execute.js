@@ -83,9 +83,9 @@ module.exports = (req, res) => {
 					estado_pago: 'approved',
 					id: data.id
 				}, id_api_call).then(res => {
-					
+
 					// Redireccionar a pagina de exito
-					let query = querystring.stringify({
+					/*let query = querystring.stringify({
 						url: result[0].redirect_url,
 						paymentId: id_api_call,
 						idCompra: data.id
@@ -93,10 +93,13 @@ module.exports = (req, res) => {
 
 					console.log(query)
 
-					res.redirect(`/sales/success?${query}`)
+					res.redirect(`/sales/success?${query}`)*/
+
+					res.json({message: 'beta'})
 
 				}).catch(error => {
-					res.status(500).render('error', {
+					res.json(error)
+					/*res.status(500).render('error', {
 						title: 'No se ha podido completar su pago',
 						error: {
 							status: 500,
@@ -104,7 +107,7 @@ module.exports = (req, res) => {
 							error_status: 48,
 							error
 						}
-					})
+					})*/
 				})
 
 
