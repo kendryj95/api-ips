@@ -52,8 +52,100 @@ function sendEmailNotification (data) {
 	return deferred.promise
 }
 
-module.exports = webhook => {
+function getIpsData (id_api_call) {
+	const deferred = Q.defer()
 
+	db.connection.ips.query(
+		`SELECT * FROM pagos p WHERE id_api_call = ?`,
+		[ data.id_api_call ],
+		(err, result) => {
+			if (err) {
+				deferred.reject(err)
+			} else {
+				deferred.resolve(result)
+			}
+		}
+	)	
+
+	return deferred.promise
+}
+
+function getMetodosDePago () {
+	const deferred = Q.defer()
+
+	db.connection.ips.query(
+		`SELECT * FROM metodos_de_pago`,
+		(err, result) => {
+			if (err) {
+				deferred.reject(err)
+			} else {
+				let metodos = []
+				result.forEach(r => {
+					metodos.push({ id: r.id_metodo_de_pago, desp_op: r.descripcion })
+				})
+				deferred.resolve(metodos)
+			}
+		}
+	)
+
+	return deferred.promise
+}
+
+function saveOnSMSdb (id_api_call) {
+	const deferred = Q.defer()
+
+	getIpsData(id_api_call).then(data => {
+
+		getMetodosDePago().then(metodos => {
+			let products = []
+
+			data.forEach(o => {
+				let desp_op = ''
+
+				metodos.forEach(metodo => {
+					if (o.id_metodo_pago === metodo.id)
+						desp_op = metodo.desp_op
+				})
+
+				products.push(new Promise((resolve, reject) => {
+					db.connection.insignia.query(
+						`INSERT INTO smsin (id_sms, origen, sc, contenido, estado, data_arrive, time_arrive, desp_op, id_producto) VALUES (?, ?, ?, ?, ?, CURDATE(), CURTIME(), ?, ?)`,
+						[
+							o.sms_id,
+							o.sms_sc,
+							o.sms_sc,
+							o.sms_contenido,
+							1,
+							desp_op,
+							o.id_producto_insignia
+						],
+						(err, result) => {
+							if (err) {
+								reject(err)
+							} else {
+								resolve(result)
+							}
+						}
+					)
+				}))
+			})
+
+			Q.all(products).then(respose => {
+				deferred.resolve(response)
+			}).catch(err => {
+				deferred.reject(err)
+			})
+
+		}).catch(err => {
+			deferred.reject(err)
+		})
+
+	})
+
+	return deferred.promise
+}
+
+module.exports = webhook => {
 	let payment = {
 		estado_pago: 'approved',
 		estado_compra: 'completed',
@@ -62,6 +154,8 @@ module.exports = webhook => {
 	let id_api_call = webhook.data.object.source.id
 
 	updatePaymentToCompleted(payment, id_api_call).then(result => {
+
+		console.log('PAGO ACTUALIZADO EN IPS', result)
 		
 		let data = {
 			id_api_call,
@@ -75,11 +169,17 @@ module.exports = webhook => {
 		}
 
 		sendEmailNotification(data).then(r => {
-			console.log(r)
+			console.log('EMAIL ENVIADO', r)
 		}).catch(err => {
 			console.log(err)
 		})
 
+	}).catch(err => {
+		console.log(err)
+	})
+
+	saveOnSMSINdb(id_api_call).then(r => {
+		console.log('PAGO GUARDADO EN SMSIN', r)
 	}).catch(err => {
 		console.log(err)
 	})
