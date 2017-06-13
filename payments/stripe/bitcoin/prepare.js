@@ -25,6 +25,7 @@ function preparePayment (data) {
 				}
 			})
 		} else {
+			console.log(source)
 
 			savePaymentOnIPS(data, source)
 			.then((text) => {
@@ -33,7 +34,6 @@ function preparePayment (data) {
 			.catch(error => {
 				deferred.reject(error)
 			})
-
 
 		}
 	})
