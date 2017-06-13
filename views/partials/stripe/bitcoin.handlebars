@@ -1,0 +1,37 @@
+<img src="/public/images/bitcoin.png" alt="Pagar con bitcoin" style="display: block; margin: 20px auto; max-width: 350px;">
+
+<form action="sales/pay/stripe/bitcoin/prepare" method="post" enctype="application/json" id="stripe_form_bitcoin" data-abide novalidate>
+		
+	<input type="hidden" name="purchase" id="btc_purchase" value="{{json purchase}}">
+	<input type="hidden" name="redirect_url" id="btc_redirect_url" value="{{return_url}}">
+	<input type="hidden" name="token" id="btc_token" value="{{token}}">
+
+	<div data-abide-error class="alert callout" style="display: none;">
+		<p><i class="fi-alert"></i> Porfavor complete todos los campos correctamente.</p>
+	</div>
+
+	<div class="row align-middle">
+		<div class="column small-12 medium-6">
+			<label>
+				Correo electrónico
+				<input type="email" placeholder="jhon.smith@gmail.com" name="bitcoin_owner_email" id="bitcoin_owner_email" pattern="email" required>
+				<span class="form-error">
+					Por favor ingrese un correo electrónico válido.
+				</span>
+			</label>
+		</div>
+		<div class="column small-12 medium-6">
+			<p style="color: #brbrbr; font-size: 0.8rem; padding-top: 15px;">Esta dirección de correo electrónico debe esta asociada a su monedero de bitcoin.</p>
+		</div>
+	</div>
+
+	{{> contact_form purchase.client }}
+
+	<br>
+
+	<div class="clearfix">
+		<h6 class="float-left"><b>Total:</b> {{ money purchase.currency purchase.total }} </h6>
+
+		<button type="submit" value="Submit" class="button alert float-right">Procesar pago con stripe</button>
+	</div>
+</form>

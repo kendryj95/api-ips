@@ -28,6 +28,8 @@ $(function(){
 		});
 
 		$('#stripe_form_bitcoin').on('formvalid.zf.abide', function(ev,elem) {
+			$('#stripe_form_bitcoin button[type="submit"]').text('Cargando...').attr('disabled','disabled');
+
 			var $btc_email = $('#bitcoin_owner_email').val(),
 					$email_consumidor = $('#email').val(),
 					$phone_consumidor = $('#telephone').val(),
@@ -35,25 +37,29 @@ $(function(){
 					$redirect_url = $('#btc_redirect_url').val(),
 					$token = $('#btc_token').val();
 
-			$.post(
-				'/v1/sales/pay/stripe/bitcoin/prepare', 
-				{
+			$.post('/v1/sales/pay/stripe/bitcoin/prepare', {
 					purchase: $purchase,
 					token: $token,
 					redirect_url: $redirect_url,
 					email: $email_consumidor,
 					telephone: $phone_consumidor,
 					bitcoin_owner_email: $btc_email
-				},
-				function(data){
-					console.log(data);
+				}).done(function(data){
 					$('#btc_price').text(parseInt(data.res.bitcoin.amount)/100000000);
 					$('#btc_address').text(data.res.bitcoin.address);
 					$('#btc_email_client').text(data.client.email),
 					$('#btc_wallet').attr('href', data.res.bitcoin.uri);
 					$('#bitcoin_result').foundation('open');
-				}
-			);
+
+					$('#stripe_form_bitcoin button[type="submit"]').text('Procesar pago con stripe').removeAttr('disabled');
+				}).fail(function(xhr, status, error){
+					console.log(error);
+					console.log(status);
+					console.log(xhr);
+					alert(error);
+					
+					$('#stripe_form_bitcoin button[type="submit"]').text('Procesar pago con stripe').removeAttr('disabled');
+				});
 		});
 		
 

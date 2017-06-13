@@ -3,7 +3,7 @@ const db = require('../../../config/db')
 const email = require('../../../enviroments/email')
 const path = require('path')
 
-function handleDB (id_api_call, status) {
+function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 	const deferred = Q.defer()
 
 	db.pool.ips.getConnection((err, con) => {
@@ -28,9 +28,10 @@ function handleDB (id_api_call, status) {
 						results.forEach(o => {
 							updates.push(new Promise((resolve, reject) => {
 								con.query(
-									'UPDATE pagos SET estado_pago = ? WHERE id_api_call = ?',
+									'UPDATE pagos SET estado_pago = ?, estado_compra = ? WHERE id_api_call = ?',
 									[
 										status,
+										estado_compra,
 										id_api_call
 									],
 									(err, result) => {
@@ -89,7 +90,7 @@ function handleChargeable (webhook, url) {
 		const email = {
 			to: result.client.email,
 			subject: 'Nuevo pago con bitcoin',
-			template: 'chargeable_bitcoin',
+			template: 'stripe/bitcoin/chargeable',
 			context: {
 				email: result.client.email,
 				url: `${url}/sales/pay/stripe/bitcoin/execute?id_api_call=${id_api_call}`,
@@ -116,18 +117,24 @@ function handleChargeable (webhook, url) {
 }
 
 function handleCanceled (webhook) {
-	const status      = 'canceled',
-				id_api_call = webhook.data.object.id
+	const status        = 'canceled',
+				id_api_call   = webhook.data.object.id,
+				estado_compra = 'error_pago'
 
-	handleDB(id_api_call, status).then(result => {
+	handleDB(id_api_call, status, estado_compra).then(result => {
 
 		const email = {
 			to: result.client.email,
-			subject: 'canceled payment bitcoin webhook',
-			template: 'new_pay',
+			subject: 'Tiempo para conformar pago expirado',
+			template: 'stripe/bitcoin/canceled',
 			context: {
 				email: result.client.email
-			}
+			},
+			attachments: [{
+				filename: 'logo.png',
+				path: path.resolve('public/images/logo.png'),
+				cid: 'logoinsignia'
+			}]
 		}
 
 		handleNotificationsByEmail(email).then(r => {
@@ -146,22 +153,7 @@ function handleConsumed (webhook) {
 				id_api_call = webhook.data.object.id
 
 	handleDB(id_api_call, status).then(result => {
-
-		const email = {
-			to: result.client.email,
-			subject: 'consumed payment bitcoin webhook',
-			template: 'new_pay',
-			context: {
-				email: result.client.email
-			}
-		}
-
-		handleNotificationsByEmail(email).then(r => {
-			console.log(r)
-		}).catch(err => {
-			console.log(err)
-		})
-
+		console.log(result)
 	}).catch(error => {
 		console.log(error)
 	})

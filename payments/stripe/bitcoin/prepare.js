@@ -8,7 +8,7 @@ function preparePayment (data) {
 
 	stripe.sources.create({
 		type: 'bitcoin',
-		amount: parseInt(String(data.purchase.total).replace('.','')).toFixed(2),
+		amount: parseInt(String(parseFloat(data.purchase.total).toFixed(2)).replace('.','')),
 		currency: String(data.purchase.currency).toLowerCase(),
 		owner: {
 			email: data.owner.email
@@ -116,16 +116,16 @@ module.exports = (req, res) => {
 			res.json({ res: result, client: data.client })
 		})
 		.catch(error => {
-			res.status(error.error.status).render('error', error)
+			res.status(error.error.status).json(error)
 		})
 
 	} else {
-		res.status(400).render('error', {
-			'title': 'Error en la petición',
-			'error': {
-				'error_status': 42,
-				'status': 400,
-				'message': 'Su petición esta incompleta o inexistente.'
+		res.status(400).json({
+			title: 'Error en la petición',
+			error: {
+				error_status: 42,
+				status: 400,
+				message: 'Su petición esta incompleta o inexistente.'
 			}
 		})
 	}
