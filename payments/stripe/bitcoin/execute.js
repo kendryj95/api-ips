@@ -73,8 +73,6 @@ module.exports = (req, res) => {
 				amount += (parseFloat(o.monto) * parseInt(o.cantidad))
 			})
 
-			console.log(amount)
-
 			if (amount >= 1.00)
 				amount = amount.toFixed(2)
 
@@ -85,16 +83,19 @@ module.exports = (req, res) => {
 					estado_pago: 'approved',
 					id: data.id
 				}, id_api_call).then(res => {
-					console.log('antes de redireccionar')
+					
 					// Redireccionar a pagina de exito
-					res.redirect('/sales/success?'+querystring.stringify({
+					let query = querystring.stringify({
 						url: result[0].redirect_url,
 						paymentId: id_api_call,
 						idCompra: data.id
-					}))
+					})
+
+					console.log(query)
+
+					res.redirect(`/sales/success?${query}`)
 
 				}).catch(error => {
-				console.log('antes de errorizar')
 					res.status(500).render('error', {
 						title: 'No se ha podido completar su pago',
 						error: {
