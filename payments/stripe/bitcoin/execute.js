@@ -52,8 +52,6 @@ function updatePaymentToCompleted (payment, id_api_call) {
 		],
 		(err, result) => {
 			if (err) {
-				console.log("error en update")
-				console.log(err)
 				deferred.reject(err)
 			} else {
 				deferred.resolve(result)
@@ -81,21 +79,22 @@ module.exports = (req, res) => {
 				amount = amount.toFixed(2)
 
 			newCharge({ amount, currency: result[0].moneda }, id_api_call).then(data => {
-
+				console.log('antes de actualizar')
 				updatePaymentToCompleted({
 					estado_compra: 'completed',
 					estado_pago: 'approved',
 					id: data.id
 				}, id_api_call).then(res => {
-					
+					console.log('antes de redireccionar')
 					// Redireccionar a pagina de exito
-					res.status(200).redirect('/sales/success?'+querystring.stringify({
+					res.redirect('/sales/success?'+querystring.stringify({
 						url: result[0].redirect_url,
 						paymentId: id_api_call,
 						idCompra: data.id
 					}))
 
 				}).catch(error => {
+				console.log('antes de errorizar')
 					res.status(500).render('error', {
 						title: 'No se ha podido completar su pago',
 						error: {
