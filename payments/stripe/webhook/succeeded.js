@@ -37,7 +37,7 @@ function sendEmailNotification (data) {
 				deferred.reject(err)
 			} else {
 				console.log(result)
-				
+
 				let recipient = ''
 
 				if (result.length > 1) {
@@ -46,6 +46,7 @@ function sendEmailNotification (data) {
 					recipient = result.email
 				}
 
+				console.log(result[0].email)
 				console.log(recipient)
 
 				email.newAsync(recipient, data.subject, data.template, { email: recipient }, data.attachments).then(info => {
