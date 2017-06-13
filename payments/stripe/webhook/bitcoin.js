@@ -10,6 +10,8 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 		if (err) {
 			deferred.reject(err)
 		} else {
+			
+			console.log(status)
 
 			con.query(
 				{
@@ -25,7 +27,6 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 					} else {
 						let updates = []
 						console.log('rresssssjkhsdfjkhasdjfksd')
-						console.log(results)
 
 						results.forEach(o => {
 							updates.push(new Promise((resolve, reject) => {
