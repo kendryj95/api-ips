@@ -3,11 +3,6 @@ module.exports = (req, res) => {
 	if (req.body) {
 		const webhook = req.body
 
-		console.log('==============================')
-		console.log('webhook')
-		console.log(webhook)
-		console.log('==============================')
-
 		switch (webhook.data.object.type) {
 			case 'bitcoin':
 				require('./bitcoin')(webhook, `${req.protocol}://${req.get('host')}`)
@@ -18,6 +13,11 @@ module.exports = (req, res) => {
 			break
 			
 			default:
+			
+				console.log('==============================')
+				console.log('webhook')
+				console.log(webhook)
+				console.log('==============================')
 
 				switch (webhook.type) {
 					case 'charge.succeeded':
