@@ -13,7 +13,17 @@ module.exports = (req, res) => {
 			break
 			
 			default:
-				console.log(webhook)
+
+				switch (webhook.type) {
+					case 'charge.succeeded':
+						require('./succeeded')(webhook)
+					break
+
+					default:
+					console.log(webhook)
+					break
+				}
+
 			break
 		}
 

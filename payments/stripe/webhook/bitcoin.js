@@ -72,7 +72,7 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 function handleNotificationsByEmail (data) {
 	const deferred = Q.defer()
 
-	email.newAsync(data.to, data.subject, data.template, data.context).then(info => {
+	email.newAsync(data.to, data.subject, data.template, data.context, data.attachments).then(info => {
 		deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
 	}).catch(err => {
 		deferred.reject(err)
