@@ -46,10 +46,6 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 						})
 
 						Q.all(updates).then(result => {
-							console.log('===================================')
-							console.log(results)
-							console.log('===================================')
-
 							deferred.resolve({
 								client: {
 									email: results[0].email,
@@ -99,7 +95,7 @@ function handleChargeable (webhook, url) {
 			attachments: [{
 				filename: 'logo.png',
 				path: path.resolve('public/images/logo.png'),
-				cid: 'beta@beta.com'
+				cid: 'logoinsignia'
 			}]
 		}
 
