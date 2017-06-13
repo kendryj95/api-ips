@@ -36,9 +36,15 @@ function sendEmailNotification (data) {
 			if (err) {
 				deferred.reject(err)
 			} else {
-				console.log(result)
-				console.log(result[0].email)
-				email.newAsync(result.email, data.subject, data.template, { email: result.email }, data.attachments).then(info => {
+				let recipient = ''
+
+				if (result.length > 1) {
+					recipient = result[0].email	
+				} else {
+					recipient = result.email
+				}
+
+				email.newAsync(recipient, data.subject, data.template, { email: recipient }, data.attachments).then(info => {
 					deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
 				}).catch(err => {
 					deferred.reject(err)
