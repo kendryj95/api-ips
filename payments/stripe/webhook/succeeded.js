@@ -177,6 +177,13 @@ module.exports = webhook => {
 		updatePaymentToCompleted(con, payment, id_api_call).then(result => {
 
 			console.log('PAGO ACTUALIZADO EN IPS', result)
+
+			// Guardar pago en INSIGNIA SMSIN DB
+			saveOnSMSINdb(id_api_call).then(r => {
+				console.log('PAGO GUARDADO EN SMSIN', r)
+			}).catch(err => {
+				console.log(err)
+			})
 			
 			let data = {
 				id_api_call,
@@ -201,13 +208,7 @@ module.exports = webhook => {
 
 		// Cerrar conexion con IPS DB
 		con.release()
-
-		// Guardar pago en INSIGNIA SMSIN DB
-		saveOnSMSINdb(id_api_call).then(r => {
-			console.log('PAGO GUARDADO EN SMSIN', r)
-		}).catch(err => {
-			console.log(err)
-		})
+		
 	}).catch(err => {
 		console.log(err)
 	})
