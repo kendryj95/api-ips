@@ -157,7 +157,6 @@ function saveOnSMSINdb (id_api_call) {
 		deferred.reject(err)
 	})
 
-
 	return deferred.promise
 }
 
