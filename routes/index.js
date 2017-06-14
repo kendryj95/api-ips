@@ -26,6 +26,6 @@ router.get('/sales/proceed/paypal/cancel', result.showCancel)
 
 router.get('/sales/success', result.showSuccess)
 
-router.all('/stripe/webhooks', require('../payments/stripe/webhook/'))
+router.post('/stripe/webhooks', require('../payments/stripe/webhook/'))
 
 module.exports = router

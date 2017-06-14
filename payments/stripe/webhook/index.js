@@ -1,41 +1,55 @@
+const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH');
+const endpointSecret = 'whsec_xYs0SeWzkkyUaxSOGwSTJ0BwOgChY7F1'
+
 module.exports = (req, res) => {
+	var payload = request.rawBody;
+	var sigHeader = request.headers['stripe-signature'];
+	var event;
 
-	if (req.body) {
-		const webhook = req.body
+	try {
+		// Comprobar que la petición provenga de stripe
+		event = stripe.webhooks.constructEvent(payload, sigHeader, endpointSecret)
 
-		switch (webhook.data.object.type) {
-			case 'bitcoin':
-				require('./bitcoin')(webhook, `${req.protocol}://${req.get('host')}`)
-			break
+		if (req.body) {
+			const webhook = req.body
 
-			case 'card':
-				require('./card')(webhook)
-			break
-			
-			default:
-				switch (webhook.type) {
-					case 'charge.succeeded':
-						require('./succeeded')(webhook)
-					break
+			switch (webhook.data.object.type) {
+				case 'bitcoin':
+					require('./bitcoin')(webhook, `${req.protocol}://${req.get('host')}`)
+				break
 
-					case 'charge.failed':
-						require('./failed')(webhook)
-					break
+				case 'card':
+					require('./card')(webhook)
+				break
+				
+				default:
+					switch (webhook.type) {
+						case 'charge.succeeded':
+							require('./succeeded')(webhook)
+						break
 
-					default:
-						console.log('===================================')
-						console.log(webhook)
-						console.log('===================================')
-					break
-				}
+						case 'charge.failed':
+							require('./failed')(webhook)
+						break
 
-			break
-		}
+						default:
+							console.log('===================================')
+							console.log(webhook)
+							console.log('===================================')
+						break
+					}
 
-		res.sendStatus(200)
-	} else {
+				break
+			}
 
-		// Si no se ha enviado el cuerpo devolvemos error 400 (bad request)
-		res.sendStatus(400)
+			res.sendStatus(200)
+		} else 
+			// Si no se ha enviado el cuerpo devolvemos error 400 (bad request)
+			res.sendStatus(400)
+
+	} catch (e) {
+		// Invalid payload or signature
+		return response.sendStatus(400)
 	}
+
 }

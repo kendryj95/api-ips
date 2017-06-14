@@ -58,6 +58,23 @@ app.use(morgan('combined', {
 	}
 }))
 
+// Stripe webhook middleware
+app.use((req, res, next) => {
+  req.setEncoding('utf8')
+
+  let data = ''
+
+  req.on('data', chunk => {
+    data += chunk
+  })
+
+  req.on('end', () => {
+    req.rawBody = data
+
+    next()
+  })
+})
+
 app.all('/v1/*', [require('./middlewares/validateRequest')])
 
 app.use('/', require('./routes/'))
