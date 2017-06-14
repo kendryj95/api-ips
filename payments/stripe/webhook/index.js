@@ -13,19 +13,15 @@ module.exports = (req, res) => {
 			break
 			
 			default:
-			
-				console.log('==============================')
-				console.log('webhook')
-				console.log(webhook)
-				console.log('==============================')
-
 				switch (webhook.type) {
 					case 'charge.succeeded':
 						require('./succeeded')(webhook)
 					break
 
 					default:
-					console.log(webhook)
+						console.log('===================================')
+						console.log(webhook)
+						console.log('===================================')
 					break
 				}
 
@@ -33,5 +29,7 @@ module.exports = (req, res) => {
 		}
 
 		res.sendStatus(200)
+	} else {
+		res.sendStatus(400)
 	}
 }
