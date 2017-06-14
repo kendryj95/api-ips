@@ -18,6 +18,10 @@ module.exports = (req, res) => {
 						require('./succeeded')(webhook)
 					break
 
+					case 'charge.failed':
+						require('./failed')(webhook)
+					break
+
 					default:
 						console.log('===================================')
 						console.log(webhook)
@@ -30,6 +34,8 @@ module.exports = (req, res) => {
 
 		res.sendStatus(200)
 	} else {
+
+		// Si no se ha enviado el cuerpo devolvemos error 400 (bad request)
 		res.sendStatus(400)
 	}
 }

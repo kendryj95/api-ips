@@ -175,7 +175,7 @@ module.exports = webhook => {
 			
 			let data = {
 				id_api_call,
-				subject: 'Nuevo pago satisfactorio',
+				subject: 'Nuevo pago procesado satisfactoriamente',
 				template: 'payment_succeeded',
 				attachments: [{
 					filename: 'logo.png',
