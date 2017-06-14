@@ -1,19 +1,4 @@
-const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH');
-const endpointSecret = 'whsec_xYs0SeWzkkyUaxSOGwSTJ0BwOgChY7F1'
-
 module.exports = (req, res) => {
-	var payload = request.rawBody;
-	var sigHeader = request.headers['stripe-signature'];
-	var event;
-
-	try {
-		// Comprobar que la petición provenga de stripe
-		event = stripe.webhooks.constructEvent(payload, sigHeader, endpointSecret)
-	} catch (e) {
-		// Invalid payload or signature
-		return response.sendStatus(400)
-	}
-
 	if (req.body) {
 		const webhook = req.body
 
