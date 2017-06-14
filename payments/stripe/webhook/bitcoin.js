@@ -26,7 +26,6 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 						deferred.reject(err)
 					} else {
 						let updates = []
-						console.log('rresssssjkhsdfjkhasdjfksd')
 
 						results.forEach(o => {
 							updates.push(new Promise((resolve, reject) => {
@@ -93,7 +92,8 @@ function handleChargeable (webhook, url) {
 			context: {
 				email: result.client.email,
 				url: `${url}/sales/pay/stripe/bitcoin/execute?id_api_call=${id_api_call}`,
-				amount: (parseInt(webhook.data.object.bitcoin.amount) / 100000000)
+				amount: (parseInt(webhook.data.object.bitcoin.amount) / 100000000),
+				id_api_call
 			},
 			attachments: [{
 				filename: 'logo.png',
@@ -127,7 +127,8 @@ function handleCanceled (webhook) {
 			subject: 'Tiempo para conformar pago expirado',
 			template: 'stripe/bitcoin/canceled',
 			context: {
-				email: result.client.email
+				email: result.client.email,
+				id_api_call
 			},
 			attachments: [{
 				filename: 'logo.png',
