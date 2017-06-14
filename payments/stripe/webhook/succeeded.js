@@ -57,7 +57,7 @@ function getIpsData (con, id_api_call) {
 
 	con.query(
 		`SELECT * FROM pagos p WHERE id_api_call = ?`,
-		[ data.id_api_call ],
+		[ id_api_call ],
 		(err, result) => {
 			if (err) {
 				deferred.reject(err)
