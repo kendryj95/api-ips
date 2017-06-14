@@ -133,8 +133,8 @@ function saveOnSMSINdb (id_api_call) {
 						}))
 					})
 
-					Q.all(products).then(respose => {
-						deferred.resolve(response)
+					Q.all(products).then(res => {
+						deferred.resolve(res)
 					}).catch(err => {
 						deferred.reject(err)
 					})
