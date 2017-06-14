@@ -30,75 +30,59 @@ function processPayment (data) {
 					'error': err
 				} 
 			})
-		}
-					
-		stripe.charges.create({
-			amount: String(data.purchase.total).replace('.',''),
-			currency: data.purchase.currency.toLowerCase(),
-			description: 'test',
-			source: source.id
-		}, (err, charge) => {
-			if (err) {
-				deferred.reject({
-					'title': 'No se ha podido procesar el pago con éxito', 
-					'error': {
-						'status': 500,
-						'message': 'Stripe no ha podido procesar su pago de manera satisfactoria, porfavor intente de nuevo más tarde.',
-						'error_code': 36,
-						'error': err
-					} 
-				})
-			} else {
-				// Crear parametros para la url
-				let params = querystring.stringify({ 
-					url: data.redirect_url, 
-					paymentId: source.id,
-					idCompra: charge.id
-				})
-				let approval_url = `/sales/success?${params}`
+		} else {
+			stripe.charges.create({
+				amount: String(data.purchase.total).replace('.',''),
+				currency: data.purchase.currency.toLowerCase(),
+				description: 'test',
+				source: source.id
+			}, (err, charge) => {
+				if (err) {
+					deferred.reject({
+						'title': 'No se ha podido procesar el pago con éxito', 
+						'error': {
+							'status': 500,
+							'message': 'Stripe no ha podido procesar su pago de manera satisfactoria, porfavor intente de nuevo más tarde.',
+							'error_code': 36,
+							'error': err
+						} 
+					})
+				} else {
+					// Crear parametros para la url
+					let params = querystring.stringify({ 
+						url: data.redirect_url, 
+						paymentId: source.id,
+						idCompra: charge.id
+					})
+					let approval_url = `/sales/success?${params}`
 
-				saveOnDB(data, charge, source).then(d => {
 					deferred.resolve({ charge, source, approval_url })
-				}).catch(err => {
-					deferred.reject(err)
-				})
-			}			
+				}			
 
-		})
+			})
+		}					
 	})
 
 	return deferred.promise
 }
 
-function saveOnDB (data, source, charge) {
+function saveOnDB (data, charge, source) {
 	const deferred = Q.defer()
 
-	db.pool.ips.getConnection((err, con) => {
-		if (err) {
-			defer.reject({
-				title: 'ERROR',
-				error: {
-					'status': 500,
-					'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
-					'error_code': 38,
-					'error': err
-				}
-			})
-		} else {
-			data.purchase.products.forEach(o => {
+	db.promise.ips().then(con => {
+		let products = []
+
+		data.purchase.products.forEach(o => {
+			products.push(new Promise((resolve, reject) => {
 				con.query(
-					{
-						sql: 'INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_compra, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, 4, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-						timeout: 3000
-					},
+					`INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, 4, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 					[
-						'completed',
-						'approved',
+						'created',
+						'waiting',
 						data.purchase.currency,
 						o.price,
 						o.quantity,
 						data.client.email,
-						charge.id,
 						source.id,
 						o.id,
 						data.token.cliente.id,
@@ -110,77 +94,40 @@ function saveOnDB (data, source, charge) {
 					],
 					(err, result) => {
 						if (err) {
-							defer.reject({
-							title: 'ERROR',
-								error: {
-									'status': 500,
-									'message': 'Ha ocurrido un error tratando de manipular la base de datos',
-									'error_code': 39,
-									'error': err
-								}
-						})
-						}
-					}
-				)
-			})
-		}
-
-		con.release()
-	})
-
-	db.pool.insignia.getConnection((err, con) => {
-		if (err) {
-			deferred.reject({
-				title: 'ERROR',
-				error: {
-					'status': 500,
-					'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
-					'error_code': 40,
-					'error': err
-				}
-			})
-			return
-		} else {
-			data.purchase.products.forEach(o => {
-				con.query(
-					{
-						sql: 'INSERT INTO smsin (id_sms, origen, sc, contenido, estado, data_arrive, time_arrive, desp_op, id_producto) VALUES (?, ?, ?, ?, ?, CURDATE(), CURTIME(), ?, ?)',
-						timeout: 3000
-					},
-					[
-						data.token.cliente.id,
-						data.token.cliente.origen,
-						data.token.cliente.sc,
-						`${o.type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${o.description}`,
-						1,
-						'STRIPE_CREDITCARD',
-						o.id
-					],
-					(err, result) => {
-						if (err) {
-							deferred.reject({
+							reject({
 								title: 'ERROR',
-								error: {
-									'status': 500,
-									'message': 'Ha ocurrido un error tratando de manipular la base de datos',
-									'error_code': 41,
-									'error': err
-								}
+									error: {
+										'status': 500,
+										'message': 'Ha ocurrido un error tratando de manipular la base de datos',
+										'error_code': 39,
+										'error': err
+									}
 							})
-							return
-						}
+						} else
+							resolve(result)
 					}
 				)
-			})
-		}
+			}))
+		})
+
+		Q.all(products).then(result => {
+			deferred.resolve(result)
+		}).catch(err => {
+			deferred.reject(err)
+		})			
 
 		con.release()
+	}).catch(err => {
+		deferred.reject({
+			title: 'ERROR',
+			error: {
+				'status': 500,
+				'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
+				'error_code': 38,
+				'error': err
+			}
+		})
 	})
-
-	deferred.resolve({
-		status: 201,
-		message: 'Se ha procesado el pago correctamente.'
-	})	
 
 	return deferred.promise
 }
@@ -195,7 +142,7 @@ module.exports = (req, res) => {
 					redirect_url = String(req.body.redirect_url),
 					client = { email: String(req.body.email), telephone: String(req.body.telephone) }
 
-		const data = {
+		const cc_data = {
 			card: {
 				number: req.body.stripe_cc_number,
 				cvv: req.body.stripe_cc_cvv,
@@ -213,24 +160,10 @@ module.exports = (req, res) => {
 			client
 		}
 
-		processPayment(data)
-		.then(data => {
-			// Enviar notificación por email
-			let mail = {
-				to: client.email,
-				subject: 'Nuevo pago procesado satisfactoriamente',
-				template: 'new_pay',
-				context: {
-					email: client.email,
-				},
-				callback: (error, info) => {
-					if (error) 
-						console.log(error)
-					else 
-						console.log('Message %s sent: %s', info.messageId, info.response)
-				}
-			}
-			require('../../enviroments/notifications/new')(mail)
+		processPayment(cc_data).then(data => {
+
+			// Guardar registro en db IPS
+			saveOnDB(cc_data, data.charge, data.source)
 
 			//Redireccionar pagina de success
 			res.redirect(data.approval_url)
