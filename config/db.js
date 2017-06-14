@@ -66,6 +66,17 @@ function getConnectionIpsPromisifed () {
 	})
 }
 
+function getConnectionInsigniaPromisifed () {
+	return new Promise((resolve, reject) => {
+		con_insignia_pool.getConnection((err, con) => {
+			if (err)
+				reject(err)
+			else
+				resolve(con)
+		})
+	})
+}
+
 module.exports = {
 	pool: {
 		insignia: con_insignia_pool,
@@ -76,6 +87,7 @@ module.exports = {
 		ips: con_ips
 	},
 	promise: {
-		ips: getConnectionIpsPromisifed
+		ips: getConnectionIpsPromisifed,
+		insignia: getConnectionInsigniaPromisifed
 	}
 }

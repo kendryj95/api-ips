@@ -78,6 +78,8 @@ module.exports = (req, res) => {
 				res.json(err)
 			})
 
+			con.release()
+			
 		}).catch(err => {
 			res.status(500).render('error', {
 				title: 'No se ha podido procesar su pago',
