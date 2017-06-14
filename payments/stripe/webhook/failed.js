@@ -17,6 +17,7 @@ function updatePaymentStatus (con, payment, id_api_call) {
 			if (err) {
 				deferred.reject(err)
 			} else {
+				console.log('RESULTADO DEL UPDATE', result)
 				deferred.resolve(result)
 			}
 		}
@@ -35,13 +36,16 @@ function sendEmailNotification (con, id_api_call, email) {
 			if (err) {
 				deferred.reject(err)
 			} else {
-				let recipient = result[0].email
-				let id_api_call = result[0].id_api_call
-				email.newAsync(recipient, email.subject, email.template, { email: recipient, id_api_call: result[0].id_api_call }, email.attachments).then(info => {
-					deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
-				}).catch(err => {
-					deferred.reject(err)
-				})
+				if (result.length > 0) {
+					let recipient = result[0].email
+					let id_api_call = result[0].id_api_call
+					email.newAsync(recipient, email.subject, email.template, { email: recipient, id_api_call: result[0].id_api_call }, email.attachments).then(info => {
+						deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
+					}).catch(err => {
+						deferred.reject(err)
+					})
+				} else 
+					deferred.reject({ error: `No existe ningun pago asociado al id_api_call: ${id_api_call}` })
 			}
 		}
 	)
