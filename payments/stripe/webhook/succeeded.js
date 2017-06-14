@@ -18,7 +18,12 @@ function updatePaymentToCompleted (con, payment, id_api_call) {
 			if (err) {
 				deferred.reject(err)
 			} else {
-				deferred.resolve(result)
+				console.log('RESULTADO DEL UPDATE: ', result)
+
+				if (result.affectedRows > 0)
+					deferred.resolve(result)
+				else
+					deferred.reject({ error: `No existe ningun pago asociado al id_api_call: ${id_api_call}` })
 			}
 		}
 	)
@@ -194,15 +199,16 @@ module.exports = webhook => {
 			console.log(err)
 		})
 
+		// Cerrar conexion con IPS DB
 		con.release()
+
+		// Guardar pago en INSIGNIA SMSIN DB
+		saveOnSMSINdb(id_api_call).then(r => {
+			console.log('PAGO GUARDADO EN SMSIN', r)
+		}).catch(err => {
+			console.log(err)
+		})
 	}).catch(err => {
 		console.log(err)
 	})
-
-	saveOnSMSINdb(id_api_call).then(r => {
-		console.log('PAGO GUARDADO EN SMSIN', r)
-	}).catch(err => {
-		console.log(err)
-	})
-
 }
