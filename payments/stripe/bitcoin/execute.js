@@ -3,22 +3,19 @@ const Q = require('q')
 const querystring = require('querystring')
 const db = require('../../../config/db')
 
-function getPaypementsRecord (id_api_call) {
-	const deferred = Q.defer()
-
-	db.connection.ips.query(
-		`SELECT * FROM pagos p WHERE p.id_api_call = ?`,
-		[ id_api_call ],
-		(err, result) => {
-			if (err) {
-				deferred.reject(err)
-			} else {
-				deferred.resolve(result)
+function getPaypementsRecord (con, id_api_call) {
+	return new Promise((resolve, reject) => {
+		con.query(
+			`SELECT * FROM pagos p WHERE p.id_api_call = ?`,
+			[ id_api_call ],
+			(err, result) => {
+				if (err)
+					reject(err)
+				else
+					resolve(result)
 			}
-		}
-	)
-
-	return deferred.promise
+		)
+	})
 }
 
 function newCharge (payment, id_api_call) {
@@ -43,40 +40,45 @@ module.exports = (req, res) => {
 	if (req.query.id_api_call) {
 		const id_api_call = req.query.id_api_call
 
-		getPaypementsRecord(id_api_call).then(result => {
-			let amount = 0.0
+		db.promise.ips().then(con => {
 
-			result.forEach(o => {
-				amount += (parseFloat(o.monto) * parseInt(o.cantidad))
-			})
+			getPaypementsRecord(con, id_api_call).then(result => {
+				let amount = 0.0
 
-			if (amount >= 1.00)
-				amount = amount.toFixed(2)
-
-			newCharge({ amount, currency: result[0].moneda }, id_api_call).then(data => {
-
-				// Redireccionar a pagina de exito
-				let query = querystring.stringify({
-					url: result[0].redirect_url,
-					paymentId: id_api_call,
-					idCompra: data.id
+				result.forEach(o => {
+					amount += (parseFloat(o.monto) * parseInt(o.cantidad))
 				})
 
-				res.redirect(`/sales/success?${query}`)
+				if (amount >= 1.00)
+					amount = amount.toFixed(2)
 
-			}).catch(error => {
-				res.render('error', {
-					title: 'No se ha podido procesar su pago',
-					error: {
-						status: 400,
-						message: 'La pasarela stripe ha devuelto un error.',
-						error_status: 47,
-						error	
-					}
+				newCharge({ amount, currency: result[0].moneda }, id_api_call).then(data => {
+
+					// Redireccionar a pagina de exito
+					let query = querystring.stringify({
+						url: result[0].redirect_url,
+						paymentId: id_api_call,
+						idCompra: data.id
+					})
+
+					res.redirect(`/sales/success?${query}`)
+
+				}).catch(error => {
+					res.render('error', {
+						title: 'No se ha podido procesar su pago',
+						error: {
+							status: 400,
+							message: 'La pasarela stripe ha devuelto un error.',
+							error_status: 47,
+							error	
+						}
+					})
 				})
+			}).catch(err => {
+				res.json(err)
 			})
 
-		}).catch(error => {
+		}).catch(err => {
 			res.status(500).render('error', {
 				title: 'No se ha podido procesar su pago',
 				error: {

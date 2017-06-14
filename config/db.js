@@ -56,8 +56,13 @@ con_ips_pool.on('release', function (connection) {
 })
 
 function getConnectionIpsPromisifed () {
-	return con_ips_pool.getConnectionAsync().disposer(connection => {
-		connection.release()
+	return new Promise((resolve, reject) => {
+		con_ips_pool.getConnection((err, con) => {
+			if (err)
+				reject(err)
+			else
+				resolve(con)
+		})
 	})
 }
 
