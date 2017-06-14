@@ -1,22 +1,26 @@
-<form action="sales/pay/paypal" method="POST" enctype="application/json">
+<img src="/public/images/paypal-logo.png" alt="Paypal" class="image-center" style="width: 40%;">
 
-	<input type="hidden" name="purchase" value="{{json purchase}}">
-	<input type="hidden" name="redirect_url" value="{{return_url}}">
-	<input type="hidden" name="token" value="{{token}}">
-	
-	<img src="/public/images/paypal-logo.png" alt="Paypal" class="image-center" style="width: 40%;">
+<div style="text-align: justify; margin-bottom: 20px;">
+	<p><b>PayPal Holdings, Inc.</b> es una empresa estadounidense que opera en casi todo el mundo un sistema de pagos en línea que soporta transferencias de dinero entre usuarios y sirve como una alternativa electrónica a los métodos de pago tradicionales como cheques y giros postales. PayPal es una de las mayores compañías de pago por Internet del mundo</p>
+</div>
 
-	<div style="text-align: justify; margin-bottom: 20px;">
-		<p><b>PayPal Holdings, Inc.</b> es una empresa estadounidense que opera en casi todo el mundo un sistema de pagos en línea que soporta transferencias de dinero entre usuarios y sirve como una alternativa electrónica a los métodos de pago tradicionales como cheques y giros postales. PayPal es una de las mayores compañías de pago por Internet del mundo</p>
-	</div>
+<h6 class="underlined" style="margin-bottom: 20px;">Seleccione una forma para pagar</h6>
 
-	{{> contact_form purchase.client }}
+<ul class="accordion stripe-methods" data-accordion>
 
-	<br>
+	{{! Pague con PayPal }}
+	<li class="accordion-item is-active" data-accordion-item>
+		<a href="#" class="accordion-title">PayPal</a>
+		<div class="accordion-content" data-tab-content>
+			{{> paypal/paypal }}
+		</div>
+	</li>
 
-	<div class="clearfix">
-		<h6 class="float-left"><b>Total:</b> {{money purchase.currency purchase.total }} </h6>
-
-		<button type="submit" class="button alert float-right">Procesar pago con paypal</button>
-	</div>
-</form>
+	{{! Paypal con tarjeta de crédito }}
+	<li class="accordion-item " data-accordion-item>
+		<a href="#" class="accordion-title">Tarjeta de crédito</a>
+		<div class="accordion-content" data-tab-content>
+			{{> paypal/creditcard }}			
+		</div>
+	</li>
+</ul>

@@ -1,0 +1,20 @@
+<form action="sales/pay/paypal" method="POST" enctype="application/json">
+
+	<div style="text-align: justify; margin-top: 20px; margin-bottom: 30px;">
+		<h6>Pague usando el crédito que dispone en su cuenta, sin complicaciones.</h6>
+	</div>
+
+	<input type="hidden" name="purchase" value="{{json purchase}}">
+	<input type="hidden" name="redirect_url" value="{{return_url}}">
+	<input type="hidden" name="token" value="{{token}}">
+
+	{{> contact_form purchase.client }}
+
+	<br>
+
+	<div class="clearfix">
+		<h6 class="float-left"><b>Total:</b> {{money purchase.currency purchase.total }} </h6>
+
+		<button type="submit" class="button alert float-right">Procesar pago con paypal</button>
+	</div>
+</form>
