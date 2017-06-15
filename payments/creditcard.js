@@ -1,8 +1,8 @@
-const paypal = require('paypal-rest-sdk')
-const moment = require('moment')
-const Q = require('q')
+const paypal      = require('../config/setup')
+const moment      = require('moment')
+const Q           = require('q')
 const querystring = require('querystring')
-const db = require('../config/db')
+const db          = require('../config/db')
 
 function processPay (data, token) {
 	const deferred = Q.defer()
@@ -175,8 +175,6 @@ module.exports = {
 		const base_url = `${req.protocol}://${req.get('host')}`
 
 		if (req.body && req.body.purchase && req.body.redirect_url) {
-			require('../config/setup')
-
 			const data = {
 				purchase: JSON.parse(req.body.purchase),
 				payer: {

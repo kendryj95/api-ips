@@ -8,7 +8,7 @@ const result = require('./result')
 
 router.post('/token', require('./tokens').new)
 
-router.post('/v1/sales', sales.new)
+router.all('/v1/sales', sales.new)
 
 router.post('/v1/sales/pay/creditcard', sales.pay.creditcard)
 

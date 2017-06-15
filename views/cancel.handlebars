@@ -1,24 +1,27 @@
+
+<style>
+	
+</style>
+
+<header>
+	
+</header>
+
 <br><br>
+
 <div class="row align-center">
 	<div class="cloumn small-12 medium-9 large-8">
-		<a href="javascript:history.back();" class="go-back" style="padding-top: 30px;">
-			<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
-			Regresar al paso anterior
-		</a>
-
-		<br>
-		<br>
-		<br>
-
 		<div style="text-align: center;">
-			<i class="fa fa-exclamation-triangle error" aria-hidden="true"></i>	
+			
+			{{! Logo Insignia }}
+			<img src="/public/images/logo.png" alt="Insignia Mobile Communications, C.A." class="image-center" style="margin-top: 0;">
 
-			<h4>Su solicitud no pudo ser procesada debido a los siguientes problemas:</h4>
-			<ul>
-			{{#each error.details}}
-				<li>{{issue}}</li>
-			{{/each}}
-			</ul>
+
+			<h3>Ha ocurrido un error tratando de procesar su pago</h3>
+
+			<p>Ofrecemos nuestras disculpas.</p>
+
+			<a href="/v1/sales?token={{{ token }}}">Haga click aquí para regresar</a>
 
 		</div>
 

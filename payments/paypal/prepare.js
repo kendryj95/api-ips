@@ -1,6 +1,6 @@
-const paypal = require('paypal-rest-sdk')
-const Q = require('q')
-const db = require('../../config/db')
+const paypal      = require('paypal-rest-sdk')
+const Q           = require('q')
+const db          = require('../../config/db')
 const handleToken = require('../../enviroments/token')
 
 function processPay (base_url, purchase, redirect_url, client, token) {
@@ -108,7 +108,8 @@ function processPay (base_url, purchase, redirect_url, client, token) {
 				deferred.resolve({
 					'status': '201',
 					'message': 'Pre procesamiento del pago hecho correctamente.',
-					'approval_url': links['approval_url'].href
+					'approval_url': links['approval_url'].href,
+					'payment': payment
 				})
 
 			} else {
@@ -156,13 +157,15 @@ module.exports = function(req, res, next) {
 			})
 		} else {
 
-			processPay(base_url, purchase, redirect_url, client, token)
-				.then(data => {
-					res.redirect(data.approval_url)
-				})
-				.catch(error => {
-					res.render(error.status).render('error', error)
-				})
+			processPay(base_url, purchase, redirect_url, client, token).then(data => {
+				// Agregamos el resultado de la peticion de compra a la ips_session
+				req.ips_session.payment = data.payment
+				
+				// Redireccionamos a paypal para procesar el pago
+				res.redirect(data.approval_url)
+			}).catch(error => {
+				res.render(error.status).render('error', error)
+			})
 
 		}
 

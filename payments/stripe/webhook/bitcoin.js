@@ -1,7 +1,7 @@
-const Q = require('q')
-const db = require('../../../config/db')
+const Q     = require('q')
+const db    = require('../../../config/db')
 const email = require('../../../enviroments/email')
-const path = require('path')
+const path  = require('path')
 
 function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 	const deferred = Q.defer()

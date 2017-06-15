@@ -1,4 +1,4 @@
-var paypal = require('paypal-rest-sdk')
+const paypal = require('paypal-rest-sdk')
 
 //AYdVxAu3gwaTAcv4qU07-KjHNGS8EnwUEJL0IUxZFz1KWmKZMLeuppa18ddkfq7ZMgigwqVm4_BJOnM5
 //ENMzt1C9Qhb7id1w25LFmNyAXluIphATeXSuNRJCtV5aiHa4-KQ_IFPNE3RmeFgTe3Z7B_F0QkI1ECwP
@@ -11,3 +11,5 @@ paypal.configure({
 //		'custom': 'header'
 //	}
 })
+
+module.exports = paypal

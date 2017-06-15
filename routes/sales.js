@@ -1,5 +1,5 @@
 module.exports = {
-	new: require('./new_sale'),
+	new: require('../static/new_sale'),
 	pay: {
 		creditcard: require('../payments/creditcard').paypal,
 		paypal: {

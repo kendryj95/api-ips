@@ -1,7 +1,9 @@
-const paypal = require('paypal-rest-sdk')
+const paypal      = require('../../config/setup')
 const querystring = require('querystring')
-const Q = require('q')
-const db = require('../../config/db')
+const Q           = require('q')
+const db          = require('../../config/db')
+const email       = require('../../enviroments/notifications/new')
+const path        = require('path')
 
 function saveOnDatabase (payment, paymentId) {
 	const deferred = Q.defer()
@@ -121,10 +123,20 @@ function saveOnDatabase (payment, paymentId) {
 	return deferred.promise
 }
 
+function handleNotificationsByEmail (data) {
+	const deferred = Q.defer()
+
+	email.newAsync(data.to, data.subject, data.template, data.context, data.attachments).then(info => {
+		deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
+	}).catch(err => {
+		deferred.reject(err)
+	})
+
+	return deferred.promise
+}
+
 module.exports = function(req, res) {
-	try {
-		require('../../config/setup')
-	
+	try {	
 		const paymentId = req.query.paymentId
 		const payerId = { 
 			payer_id: req.query.PayerID 
@@ -156,21 +168,25 @@ module.exports = function(req, res) {
 						res.redirect(url)
 
 						// Enviar una notificación por email y sms
-						const mail = {
-							to: data.notification_email,
+						let email = {
+							id_api_call,
 							subject: 'Nuevo pago procesado satisfactoriamente',
-							template: 'new_pay',
+							template: 'payment_succeeded',
+							attachments: [{
+								filename: 'logo.png',
+								path: path.resolve('public/images/logo.png'),
+								cid: 'logoinsignia'
+							}],
 							context: {
 								email: data.notification_email,
-							}, 
-							callback: (error, info) => {
-								if (error)
-									console.log(error)
-								else 
-									console.log('Message %s sent: %s', info.messageId, info.response)
 							}
 						}
-						require('../../enviroments/notifications/new')(mail)
+						handleNotificationsByEmail(email).then(r => {
+							console.log('MENSAJE ENVIADO SATISFACTORIAMENTE', r)
+						}).catch(err => {
+							console.log('ERROR AL ENVIAR MENSAJE', err)
+						})
+
 					})
 					.catch(error => {
 						res.status(error.error.status).render('error', error)
