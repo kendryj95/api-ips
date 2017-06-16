@@ -1,28 +1,49 @@
-
 <style>
-	
+	.cancel-wrapper {
+		height: 100vh;
+
+		display: flex;
+		align-items: center;
+	}
+
+	.info {
+		background-color: #fff;
+		padding: 10px;
+		border-top: 1.5px solid #C30A12;
+	}
+
+	.links {
+		margin-top: 25px;
+	}
+
+	.alert {
+		padding: 10px;
+	}
 </style>
 
-<header>
-	
-</header>
-
-<br><br>
-
-<div class="row align-center">
-	<div class="cloumn small-12 medium-9 large-8">
-		<div style="text-align: center;">
+<div class="row align-center cancel-wrapper">
+	<div class="cloumn small-12 medium-9 large-6 cancel-info">
 			
-			{{! Logo Insignia }}
-			<img src="/public/images/logo.png" alt="Insignia Mobile Communications, C.A." class="image-center" style="margin-top: 0;">
+		{{! Logo Insignia }}
+		<img src="/public/images/logo.png" alt="Insignia Mobile Communications, C.A." class="image-center" style="margin-top: 0;">
 
+			
+		<div class="info">
+			<h3>Su pago ha sido cancelado</h3>
 
-			<h3>Ha ocurrido un error tratando de procesar su pago</h3>
+			<p>El pago con el ticket <b>{{ payment.id }}</b> ha sido cancelado durante la ejecución del mismo. Porfavor intente de nuevo, seleccione un nuevo método de pago o regrese a {{ client.name }}.</p>
 
-			<p>Ofrecemos nuestras disculpas.</p>
+		</div>
 
-			<a href="/v1/sales?token={{{ token }}}">Haga click aquí para regresar</a>
-
+		<div class="clearfix links">
+			<a href="/v1/sales?token={{{ token }}}" class="float-right button alert">
+				Regresar a resumen de compra 
+				<i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+			</a>
+			<a href="{{ client.origin }}" class="float-left button alert">
+				<i class="fa fa-long-arrow-left" aria-hidden="true"></i> 
+				Regresar a {{ client.name }}
+			</a>
 		</div>
 
 	</div>

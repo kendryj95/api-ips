@@ -3,54 +3,6 @@ const crypto      = require('../enviroments/crypto')
 const db          = require('../config/db')
 const Q           = require('q')
 
-function showSuccessPage (req, res) {
-	if (req.query || req.query.url || req.query.paymentId || req.query.idCompra) {
-
-		const url    = req.query.url
-		const params = querystring.stringify({
-			paymentId: req.query.paymentId,
-			idCompra: req.query.idCompra
-		})
-		let redirect = ''
-
-		if (String(url).indexOf('?') !== -1) {
-			redirect = `${url}&${params}`
-		} else {
-			redirect = `${url}?${params}`
-		}
-
-		// Eliminamos toda session de la compra
-		req.ips_session.reset()
-
-		// Mostramos pagina de exito
-		res.status(201).render('success', {
-			title: 'Nuevo pago procesado satisfactoriamente',
-			redirect_url: redirect,
-			noEscape: true
-		})
-
-	} else {
-		res.redirect('/404')
-	}
-}
-
-function showCancelPage (req, res) {
-	const user_info = req.ips_session.user_info
-	const purchase  = req.ips_session.purchase
-	const payment   = req.ips_session.payment
-
-	db_record(payment).then(result => {
-		console.log('RESULTADO DE ACTUALIZACION DE BASE DE DATOS', result)
-		res.render('cancel', {
-			title: 'Solicitud de pago fallida',
-			token: purchase.token
-		})
-	}).catch(err => {
-		console.log('ERROR AL GUARDAR EN DB', err)
-		res.render('error', err)
-	})
-}
-
 function updateOnDb (con, payment) {
 	const deferred = Q.defer()
 
@@ -96,6 +48,61 @@ function db_record (payment) {
 	})
 
 	return deferred.promise
+}
+
+function showSuccessPage (req, res) {
+	if (req.query || req.query.url || req.query.paymentId || req.query.idCompra) {
+
+		const url    = req.query.url
+		const params = querystring.stringify({
+			paymentId: req.query.paymentId,
+			idCompra: req.query.idCompra
+		})
+		let redirect = ''
+
+		if (String(url).indexOf('?') !== -1) {
+			redirect = `${url}&${params}`
+		} else {
+			redirect = `${url}?${params}`
+		}
+
+		// Eliminamos toda session de la compra
+		req.ips_session.reset()
+
+		// Mostramos pagina de exito
+		res.status(201).render('success', {
+			title: 'Nuevo pago procesado satisfactoriamente',
+			redirect_url: redirect,
+			noEscape: true
+		})
+
+	} else {
+		res.redirect('/404')
+	}
+}
+
+function showCancelPage (req, res) {
+	const user_info = req.ips_session.user_info
+	const purchase  = req.ips_session.purchase
+	const payment   = req.ips_session.payment
+
+	db_record(payment).then(result => {
+		console.log('RESULTADO DE ACTUALIZACION DE BASE DE DATOS', result)
+		res.render('cancel', {
+			title: 'Solicitud de pago fallida',
+			token: purchase.token,
+			client: {
+				name: require('../enviroments/token').getTokenDecoded(purchase.token).cliente.nombre,
+				origin: user_info.origin
+			},
+			payment: {
+				id: payment.id
+			}
+		})
+	}).catch(err => {
+		console.log('ERROR AL GUARDAR EN DB', err)
+		res.render('error', err)
+	})
 }
 
 module.exports = {

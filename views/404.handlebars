@@ -1,1 +1,45 @@
-<h1>Hola Mundo</h1>
+<style>
+	.wrapper-404 {
+		height: 100vh;
+		max-width: 100%;
+		display: flex;
+		align-items: center;
+	}
+
+	.logo {
+		width: 40%;
+		margin-top: 5em;
+		display: inline-block;
+	}
+
+	p.title {
+		font-size: 15rem;
+		font-weight: bolder;
+		color: #C30A12;
+	}
+
+	p {
+		text-transform: uppercase;
+		font-size: 1.8em;
+		font-weight: bolder;
+		line-height: 1em;
+	}
+
+	/* Small only */
+	@media screen and (max-width: 39.9375em) {
+		p.title {
+			font-size: 10em;
+		}
+	}
+
+</style>
+
+<div class="row align-center wrapper-404">
+	<div class="column small-12 medium-8 large-5 text-center">
+		<p class="title">404</p>
+		<p>La página que estas buscando no pudo ser encontrada</p>
+
+		{{! Logo Insignia }}
+		<img src="/public/images/logo.png" alt="Insignia Mobile Communications, C.A." class="logo">
+	</div>
+</div>

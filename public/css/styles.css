@@ -66,12 +66,12 @@ table > tbody > tr > td > p.name {
 	margin-top: 4px;
 }
 
-form > h6, h6.underlined {
+form > h6, .underlined {
 	margin-top: 0.5rem;
 	margin-bottom: 1rem;
 }
 
-form > h6:after, h6.underlined:after {
+form > h6:after, .underlined:after {
 	content: '';
 	display: block;
 	width: 100%;

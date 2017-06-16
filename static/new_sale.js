@@ -46,6 +46,7 @@ module.exports = (req, res) => {
 			isReqFresh: req.fresh,
 			isReqStale: req.stale,
 			isXhrFilled: req.xhr,
+			origin: `${req.protocol}://${req.hostname}/`,
 			reqDate: parseInt(require('moment')().format('x'))
 		}
 		req.ips_session.user_info = userInfo

@@ -52,6 +52,13 @@ app.use(base_url+'/what-input', express.static(__dirname + '/node_modules/what-i
 app.use(base_url+'/pikaday', express.static(__dirname + '/node_modules/pikaday'))
 app.use(base_url+'/moment', express.static(__dirname + '/node_modules/moment/min'))
 
+// Debug 
+app.use(morgan('combined', {
+	'stream': {
+		write: function(str) { log4js.getLogger().debug(str); }
+	}
+}))
+
 app.all('/*', [require('./middlewares/refuseOptionsMethod')])
 
 app.all('/v1/*', [require('./middlewares/validateRequest')])
@@ -61,13 +68,6 @@ app.use('/', require('./routes/'))
 app.get('*', require('./static/404'))
 
 app.set('port', process.env.PORT || 3030)
-
-// Debug 
-app.use(morgan('combined', {
-	'stream': {
-		write: function(str) { log4js.getLogger().debug(str); }
-	}
-}))
 
 const server = app.listen(app.get('port'), function(){
 	console.log('payment gateway listening at port '+ server.address().port)
