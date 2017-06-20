@@ -68,24 +68,31 @@ module.exports = (req, res) => {
 						title: 'No se ha podido procesar su pago',
 						error: {
 							status: 400,
-							message: 'La pasarela stripe ha devuelto un error.',
+							details: [
+								{
+									issue: 'Stripe no ha podido procesar su pago.'
+								}
+							],
 							error_status: 47,
 							error	
 						}
 					})
 				})
-			}).catch(err => {
-				res.json(err)
-			})
+			}).catch(err => res.json(err))
 
+			// Cerrar conexion a db
 			con.release()
-			
+						
 		}).catch(err => {
 			res.status(500).render('error', {
 				title: 'No se ha podido procesar su pago',
 				error: {
 					status: 500,
-					message: 'No se ha podido realizar la conexion con la base de datos.',
+					details: [
+						{
+							issue: 'No se ha podido realizar la conexion con la base de datos.'
+						}
+					],
 					error_status: 46,
 					error: error
 				}
@@ -97,7 +104,11 @@ module.exports = (req, res) => {
 			title: 'Ha ocurrido un problema',
 			error: {
 				status: 400,
-				message: 'No se ha realizado correctamente la petición.',
+				details: [
+					{
+						issue: 'No se ha realizado correctamente la petición.'
+					}
+				],
 				error_status: 45
 			}
 		})

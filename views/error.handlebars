@@ -1,19 +1,64 @@
-<br><br>
-<div class="row align-center">
-	<div class="cloumn small-12 medium-9 large-8">
-		<a href="javascript:history.back();" class="go-back" style="padding-top: 30px;">
-			<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
-			Regresar al paso anterior
-		</a>
+<style>
+	.error-wrapper {
+		height: 100vh;
 
-		<br>
-		<br>
-		<br>
+		display: flex;
+		align-items: center;
+	}
 
-		<div style="text-align: center;">
-			
-			<p>{{json error}}</p>
+	.info {
+		background-color: #fff;
+		padding: 10px;
+		border-top: 1.5px solid #C30A12;
+	}
 
+	.links {
+		margin-top: 25px;
+	}
+
+	.alert {
+		padding: 10px;
+	}
+
+	.callout {
+		margin-bottom: 5px;
+	}
+</style>
+
+<div class="row align-center error-wrapper">
+	<div class="cloumn small-12 medium-9 large-6">
+
+		{{! Logo Insignia }}
+		<img src="/public/images/logo.png" alt="Insignia Mobile Communications, C.A." class="image-center" style="margin-top: 0;">
+
+
+		<div class="info">
+			<h4>Ha ocurrido un error</h4>
+
+			<p>
+				Lo sentimos, su solicitud no pudo ser procesada debido a los siguientes problemas:
+			</p>
+
+			<ol>
+				{{#each error.details}}
+				<b><li>{{ issue }}</li></b>
+				{{/each}}
+			</ol>
+
+			<p>Porfavor intente de nuevo más tarde, si el problema persiste porfavor no dude en comunicarse con nosotros lo más pronto posible.</p>
+
+		</div>
+
+		<div class="clearfix links">
+			<a href="javascript:history.back();" class="float-left button alert">
+				<i class="fa fa-long-arrow-left" aria-hidden="true"></i> 
+				Regresar al paso anterior
+			</a>
+
+
+			<div class="callout secondary small float-right">
+				<p>Error <b># {{ error.error_code }}</b></p>		
+			</div>
 		</div>
 
 	</div>

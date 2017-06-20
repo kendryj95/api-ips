@@ -25,7 +25,11 @@ function processPayment (data) {
 				'title': 'No se ha podido procesar el pago con éxito', 
 				'error': {
 					'status': 500,
-					'message': 'Stripe no ha podido procesar su pago de manera satisfactoria, porfavor intente de nuevo más tarde.',
+					'details': [
+						{
+							issue: 'Stripe no ha podido crear su pago.'
+						}
+					],
 					'error_code': 35,
 					'error': err
 				} 
@@ -42,7 +46,14 @@ function processPayment (data) {
 						'title': 'No se ha podido procesar el pago con éxito', 
 						'error': {
 							'status': 500,
-							'message': 'Stripe no ha podido procesar su pago de manera satisfactoria, porfavor intente de nuevo más tarde.',
+							'details': [
+								{
+									issue: 'Stripe no ha podido procesar su pago'
+								},
+								{
+									issue: err.raw.message
+								}
+							],
 							'error_code': 36,
 							'error': err
 						} 
@@ -98,7 +109,11 @@ function saveOnDB (data, charge, source) {
 								title: 'ERROR',
 									error: {
 										'status': 500,
-										'message': 'Ha ocurrido un error tratando de manipular la base de datos',
+										'details': [
+											{
+												issue: 'No se ha podido insertar el pago en la base de datos.'
+											}
+										],
 										'error_code': 39,
 										'error': err
 									}
@@ -119,10 +134,14 @@ function saveOnDB (data, charge, source) {
 		con.release()
 	}).catch(err => {
 		deferred.reject({
-			title: 'ERROR',
+			title: 'Error tratando de conectar a la base de datos',
 			error: {
 				'status': 500,
-				'message': 'Ha ocurrido un error tratando de recuperar la conexion a la base de datos',
+				'details': [
+					{
+						issue: 'Error tratando de conectar a la base de datos.'
+					}
+				],
 				'error_code': 38,
 				'error': err
 			}
@@ -177,7 +196,11 @@ module.exports = (req, res) => {
 			title: 'No se ha realizado la petición correctamente',
 			error: {
 				'status': 400,
-				'message': 'No se ha recibido el cuerpo de la petición, intente de nuevo mas tarde de forma correcta.',
+				'details': [
+					{
+						issue: 'No se ha recibido el cuerpo de la petición, intente de nuevo mas tarde de forma correcta.'
+					}
+				],
 				'error_code': 34
 			}
 		})

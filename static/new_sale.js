@@ -3,10 +3,18 @@ const db        = require('../config/db')
 const Q         = require('q')
 const crypto    = require('../enviroments/crypto')
 
-function getMetodosDePago () {
+function getDbConnection () {
 	const deferred = Q.defer()
 
-	db.connection.ips.query(
+	db.promise.ips().then(con => deferred.resolve(con)).catch(err => deferred.reject(err))
+
+	return deferred.promise
+}
+
+function getMetodosDePago (con) {
+	const deferred = Q.defer()
+
+	con.query(
 		{
 			sql: 'SELECT mp.descripcion, mp.status FROM metodos_de_pago mp',
 			timeout: 60000
@@ -36,9 +44,9 @@ module.exports = (req, res) => {
 	} else if (req.body.purchase && req.body.redirect_url) {
 
 		// Inicializamos la info de la compra
-		purchase = JSON.parse(req.body.purchase)
+		purchase     = JSON.parse(req.body.purchase)
 		redirect_url = req.body.redirect_url
-		token = req.body.token
+		token        = req.body.token
 
 		// Guardar info del cliente en ips_session encriptadas
 		const userInfo = {
@@ -62,61 +70,85 @@ module.exports = (req, res) => {
 		})
 	}
 
-	getMetodosDePago().then(metodos => {
+	// Crear conexión con base de datos
+	getDbConnection().then(con => {
+		// Obtener metodos de pago desde db
+		getMetodosDePago(con).then(metodos => {
 
-		let metodos_de_pago = []
-		
-		metodos.forEach(metodo => {
-			if (metodo.status != 0) {
-				if (metodo.descripcion === 'PAYPAL_CREDITCARD') {
-					metodos_de_pago.push({
-						key_name: metodo.descripcion.trim().toLowerCase(),
-						name: 'Tarjeta de credito',
-						descripcion: metodo.descripcion,
-						estado: metodo.status,
-						form: function() {
-							return metodo.descripcion.trim().toLowerCase() + '_form'
-						}
-					})	
-				} else {
-					metodos_de_pago.push({
-						key_name: metodo.descripcion.trim().toLowerCase(),
-						name: metodo.descripcion.replace('_', ' ').toUpperCase(),
-						descripcion: metodo.descripcion,
-						estado: metodo.status,
-						form: function() {
-							return metodo.descripcion.trim().toLowerCase() + '_form'
-						}
-					})
+			let metodos_de_pago = []
+			
+			metodos.forEach(metodo => {
+				if (metodo.status != 0) {
+					if (metodo.descripcion === 'PAYPAL_CREDITCARD') {
+						metodos_de_pago.push({
+							key_name: metodo.descripcion.trim().toLowerCase(),
+							name: 'Tarjeta de credito',
+							descripcion: metodo.descripcion,
+							estado: metodo.status,
+							form: function() {
+								return metodo.descripcion.trim().toLowerCase() + '_form'
+							}
+						})	
+					} else {
+						metodos_de_pago.push({
+							key_name: metodo.descripcion.trim().toLowerCase(),
+							name: metodo.descripcion.replace('_', ' ').toUpperCase(),
+							descripcion: metodo.descripcion,
+							estado: metodo.status,
+							form: function() {
+								return metodo.descripcion.trim().toLowerCase() + '_form'
+							}
+						})
+					}
 				}
+			})
+
+			// Mostrar resumen de la compra y los metodos de pago disponibles
+			res.render('new', {
+				title: 'Nuevo pago',
+				return_url: redirect_url,
+				purchase,
+				countries,
+				token,
+				metodos_de_pago
+			})
+
+		}).catch(err => {
+			if (err.code === 'PROTOCOL_SEQUENCE_TIMEOUT')
+				res.redirect('back')
+			else {
+				res.render('error', {
+					title: 'ERROR', 
+					error: {
+						'status': 500,
+						'details': [
+							{
+								issue: JSON.stringify(err)
+							}
+						],
+						'error_code': 32,
+						'error': err
+					}
+				})
 			}
 		})
 
-		// Mostrar resumen de la compra y los metodos de pago disponibles
-		res.render('new', {
-			title: 'Nuevo pago',
-			return_url: redirect_url,
-			purchase,
-			countries,
-			token,
-			metodos_de_pago
-		})
-
+		// Cerrar conexión con base de datos
+		con.release()		
 	}).catch(err => {
-		if (err.code === 'PROTOCOL_SEQUENCE_TIMEOUT')
-			res.redirect('back')
-		else {
-			res.render('error', {
-				title: 'ERROR', 
-				error: {
-					'status': 500,
-					'message': 'Some errrors',
-					'error_code': 32,
-					'error': err
-				}
-			})
-		}
+		res.status(500).render('error', {
+			title: 'Error en conexión con base de datos',
+			error: {
+				status: 500,
+				details: [
+					{
+						issue: 'Error en conexión con base de datos.'
+					}
+				],
+				error_code: 49,
+				error: err
+			}
+		})
 	})
 
-	
 }

@@ -3,6 +3,14 @@ const Q = require('q')
 const querystring = require('querystring')
 const db = require('../../../config/db')
 
+function getConnectionDb () {
+	const deferred = Q.defer()
+
+	db.promise.ips().then(con => deferred.resolve(con)).catch(err => deferred.reject(err))
+
+	return deferred.promise
+}
+
 function preparePayment (data) {
 	const deferred = Q.defer()
 
@@ -20,20 +28,25 @@ function preparePayment (data) {
 				error: {
 					status: 500,
 					error_code: 43,
-					message: 'Ha ocurrido un error al procesar su pago.',
+					details: [
+						{
+							issue: 'Error al crear pago.'
+						}
+					],
 					response: err
 				}
 			})
 		} else {
 			console.log(source)
 
-			savePaymentOnIPS(data, source)
-			.then((text) => {
-				deferred.resolve(source)
-			})
-			.catch(error => {
-				deferred.reject(error)
-			})
+			getConnectionDb().then(con => {
+
+				savePaymentOnIPS(con, data, source).then((text) => deferred.resolve(source)).catch(error => deferred.reject(error))
+
+				con.release()
+
+			}).catch(err => deferred.reject(err))
+
 
 		}
 	})
@@ -41,7 +54,7 @@ function preparePayment (data) {
 	return deferred.promise
 }
 
-function savePaymentOnIPS (data, source) {
+function savePaymentOnIPS (con, data, source) {
 	const deferred = Q.defer()
 
 	let savePerOne = o => {
@@ -64,7 +77,7 @@ function savePaymentOnIPS (data, source) {
 				data.client.telephone
 			]
 
-			db.connection.ips.query(query, params, (err, result) => {
+			con.query(query, params, (err, result) => {
 				if (err) {
 					return reject(err)
 				} else {
@@ -81,11 +94,7 @@ function savePaymentOnIPS (data, source) {
 		perOne.push(savePerOne(o))
 	}
 
-	Q.all(perOne).then(result => {
-		deferred.resolve(result)
-	}).catch(error => {
-		deferred.reject(error)
-	})
+	Q.all(perOne).then(result => deferred.resolve(result)).catch(error => deferred.reject(error))
 
 	return deferred.promise
 }
@@ -107,12 +116,8 @@ module.exports = (req, res) => {
 		}
 
 		preparePayment(data)
-		.then(result => {
-			res.json({ res: result, client: data.client })
-		})
-		.catch(error => {
-			res.status(error.error.status).json(error)
-		})
+		.then(result => res.json({ res: result, client: data.client }))
+		.catch(error => res.status(error.error.status).json(error))
 
 	} else {
 		res.status(400).json({
@@ -120,7 +125,11 @@ module.exports = (req, res) => {
 			error: {
 				error_status: 42,
 				status: 400,
-				message: 'Su petición esta incompleta o inexistente.'
+				details: [
+					{
+						issue: 'Su petición esta incompleta o inexistente.'
+					}
+				]
 			}
 		})
 	}
