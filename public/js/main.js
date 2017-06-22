@@ -24,14 +24,11 @@ $(function(){
 		alert('Porfavor complete el formulario correctamente.');
 	});
 
-	/*$('#stripe_form_bitcoin').on('invalid.zf.abide', function(ev,el) {
-		alert('Porfavor complete el formulario correctamente.');
-	});*/
+	$('#stripe_form_bitcoin').submit(function(e){
+		e.preventDefault();
+		
+		$('#stripe_form_bitcoin').on('formvalid.zf.abide', function(ev,frm) {
 
-	$('#stripe_form_bitcoin').on('formvalid.zf.abide', function(ev,frm) {
-
-		$('#stripe_form_bitcoin').submit(function(e){
-			e.preventDefault();
 			$('#stripe_form_bitcoin button[type="submit"]').text('Cargando...').attr('disabled','disabled');
 
 			var $btc_email        = $('#bitcoin_owner_email').val(),
@@ -61,9 +58,9 @@ $(function(){
 				console.log(status);
 				console.log(xhr);
 				alert(error);
-						
+					
 				$('#stripe_form_bitcoin button[type="submit"]').text('Procesar pago con stripe').removeAttr('disabled');
-			});		
+			});
 
 		});
 

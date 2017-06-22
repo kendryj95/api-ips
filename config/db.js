@@ -1,80 +1,81 @@
-const mysql = require('mysql')
-const Promise = require('bluebird')
+const mysql    = require('mysql')
 
-Promise.promisifyAll(mysql)
-Promise.promisifyAll(require("mysql/lib/Connection").prototype)
-Promise.promisifyAll(require("mysql/lib/Pool").prototype)
+const user     = 'carmen.soto'
+const password = '$q9WnZMVLj'
+const host     = '138.186.176.49'
+const port     = '3306'
 
-const con_insignia = mysql.createConnection({
-	host: '138.186.176.49',
-	port: '3306',
-	user: 'carmen.soto',
-	password: '$q9WnZMVLj',
-	database: 'sms'
-})
-
-const con_ips = mysql.createConnection({
-	host: '138.186.176.49',
-	port: '3306',
-	user: 'carmen.soto',
-	password: '$q9WnZMVLj',
-	database: 'insignia_payments_solutions'
-})
-
-const con_insignia_pool = mysql.createPool({
-	connectionLimit : 10,
-	host: '138.186.176.49',
-	port: '3306',
-	user: 'carmen.soto',
-	password: '$q9WnZMVLj',
-	database: 'sms'
-})
-
-const con_ips_pool = mysql.createPool({
-	connectionLimit : 10,
-	host: '138.186.176.49',
-	port: '3306',
-	user: 'carmen.soto',
-	password: '$q9WnZMVLj',
-	database: 'insignia_payments_solutions'
-})
-
-con_insignia_pool.on('enqueue', function(){
-	console.log('INSIGNIA DB: Waiting for an available mysql slot.')
-})
-
-con_insignia_pool.on('release', function (connection) {
-	console.log('INSIGNIA DB: MySQL Connection %d released', connection.threadId);
-})
-
-con_ips_pool.on('enqueue', function(){
-	console.log('IPS DB: Waiting for an available mysql slot.')
-})
-
-con_ips_pool.on('release', function (connection) {
-	console.log('IPS DB: MySQL Connection %d released', connection.threadId);
-})
-
-function getConnectionIpsPromisifed () {
-	return new Promise((resolve, reject) => {
-		con_ips_pool.getConnection((err, con) => {
-			if (err)
-				reject(err)
-			else
-				resolve(con)
-		})
+function createPoolConnection (database) {
+	return mysql.createPool({
+		connectionLimit : 10,
+		host,
+		user,
+		password,
+		database
 	})
 }
 
-function getConnectionInsigniaPromisifed () {
-	return new Promise((resolve, reject) => {
-		con_insignia_pool.getConnection((err, con) => {
-			if (err)
-				reject(err)
-			else
-				resolve(con)
-		})
+function createConnection (database) {
+	return mysql.createConnection({
+		host,
+		user,
+		password,
+		database
 	})
+}
+
+const con_insignia = createConnection('sms')
+
+const con_ips = createConnection('insignia_payments_solutions')
+
+const con_insignia_pool = createPoolConnection('sms')
+
+const con_ips_pool = createPoolConnection('insignia_payments_solutions')
+
+const con_insignia_alarmas_pool = createPoolConnection('insignia_alarmas')
+
+const con_insignia_masivo_premium_pool = createPoolConnection('insignia_masivo_premium')
+
+// SMS IN
+con_insignia_pool.on('enqueue', () => {
+	console.log('INSIGNIA DB: Waiting for an available mysql slot.')
+}).on('release', connection => {
+	console.log('INSIGNIA DB: MySQL Connection %d released', connection.threadId);
+})
+
+// INSIGNIA PAYMENT SOLUTIONS
+con_ips_pool.on('enqueue', () => {
+	console.log('IPS DB: Waiting for an available mysql slot.')
+}).on('release', connection => {
+	console.log('IPS DB: MySQL Connection %d released', connection.threadId);
+})
+
+// INSIGNIA ALARMAS
+con_insignia_alarmas_pool.on('enqueue', () => {
+	console.log('IPS DB: Waiting for an available mysql slot.')
+}).on('release', connection => {
+	console.log('IPS DB: MySQL Connection %d released', connection.threadId);
+})
+
+// INSIGNIA MASIVO PREMIUM
+con_insignia_masivo_premium_pool.on('enqueue',() => {
+	console.log('IPS DB: Waiting for an available mysql slot.')
+}).on('release', connection => {
+	console.log('IPS DB: MySQL Connection %d released', connection.threadId);
+})
+
+function getConnectionPromisifed (db) {
+	return () => {
+		return new Promise((resolve, reject) => {
+			createPoolConnection(db).getConnection((err, con) => {
+				if (err) reject(err)
+				else {
+					console.log(`${db.toUpperCase()}: MySQL Connection ${con.threadId} created`)
+					resolve(con)
+				}
+			})
+		})
+	}
 }
 
 module.exports = {
@@ -87,7 +88,9 @@ module.exports = {
 		ips: con_ips
 	},
 	promise: {
-		ips: getConnectionIpsPromisifed,
-		insignia: getConnectionInsigniaPromisifed
+		ips: getConnectionPromisifed('insignia_payments_solutions'),
+		insignia: getConnectionPromisifed('sms'),
+		insignia_alarmas: getConnectionPromisifed('insignia_alarmas'),
+		insignia_masivo_premium: getConnectionPromisifed('insignia_masivo_premium')
 	}
 }

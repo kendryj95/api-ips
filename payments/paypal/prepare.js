@@ -41,15 +41,15 @@ function processPay (base_url, purchase, redirect_url, client, token) {
 		]
 	}
 
-	paypal.payment.create(create_payment_json, (error, payment) => {
-		if (error) {
+	paypal.payment.create(create_payment_json, (err, payment) => {
+		if (err) {
 			deferred.reject({
 				title: 'ERROR',
 				error: {
 					'status': error.httpStatusCode,
 					'details': err.response.details,
 					'error_code': 22,
-					'error': error
+					'error': err
 				}
 			})
 		} else {
@@ -154,14 +154,14 @@ module.exports = function(req, res, next) {
 		// paypal configuration
 		require('../../config/setup')
 
-		const purchase = JSON.parse(req.body.purchase)
+		const purchase     = JSON.parse(req.body.purchase)
 		const redirect_url = req.body.redirect_url
-		const base_url = `${req.protocol}://${req.get('host')}`
+		const base_url     = `${req.protocol}://${req.get('host')}`
 
 		// Información de contacto
 		const client = {
-			email: req.body.email,
-			telephone: req.body.telephone
+			email     : req.body.email,
+			telephone : req.body.telephone
 		}
 
 		// Get token decoded
@@ -188,9 +188,7 @@ module.exports = function(req, res, next) {
 				
 				// Redireccionamos a paypal para procesar el pago
 				res.redirect(data.approval_url)
-			}).catch(error => {
-				res.render(error.status).render('error', error)
-			})
+			}).catch(error => res.render(error.status).render('error', error))
 
 		}
 

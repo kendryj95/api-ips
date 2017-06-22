@@ -63,28 +63,34 @@ function processPay (data, token) {
 				}
 			})
 		} else {
-			let ipsSaves      = []
-			let insigniaSaves = []
 
-			// Save on database
-			data.purchase.products.forEach(o => {
-				// Save new sale on Insignia Mobile Communications DB
-				const sms = {
-					id: token.cliente.id,
-					origen: token.cliente.origen,
-					sc: token.cliente.sc,
-					contenido: `${o.type}_${token.cliente.sc}_${token.cliente.nombre}_${o.description}`,
-					estado: 1,
-					desp_op: 'PAYPAL_CREDITCARD'
-				}
+			getDbConnection().then(r => {
+				let ipsSaves      = []
+				let insigniaSaves = []
 
-				ipsSaves.push(saveOnIPSDb(payment, data, o, sms))
-				insigniaSaves.push(saveOnInsigniaDb(sms, o))
-			})
+				// Save on database
+				data.purchase.products.forEach(o => {
+					// Save new sale on Insignia Mobile Communications DB
+					const sms = {
+						id: token.cliente.id,
+						origen: token.cliente.origen,
+						sc: token.cliente.sc,
+						contenido: `${o.type}_${token.cliente.sc}_${token.cliente.nombre}_${o.description}`,
+						estado: 1,
+						desp_op: 'PAYPAL_CREDITCARD'
+					}
 
-			Q.all(ipsSaves).then(result => {
+					ipsSaves.push(saveOnIPSDb(r.con.ips, payment, data, o, sms))
+					insigniaSaves.push(saveOnInsigniaDb(r.con.smsin, sms, o))
+				})
 
-				Q.all(insigniaSaves).then(r => {
+				Q.all([
+					Q.all(ipsSaves),
+					Q.all(insigniaSaves)
+				]).spread((ips, smsin) => {
+
+					console.log('IPS INSERT CREDITCARD PAYPAL', ips)
+					console.log('SMSIN INSERT CREDITCARD PAYPAL', smsin)
 
 					// Show success page
 					let params = querystring.stringify({ 
@@ -98,9 +104,13 @@ function processPay (data, token) {
 						approval_url: `/sales/success?${params}`
 					})
 
-				}).catch(err => deferred.reject(err))
+				}).catch(err => deferred.reject(err)).done()
 
-			}).catch(err =>	deferred.reject(err))
+				// Cerrar conexiones
+				r.con.ips.release()
+				r.con.smsin.release()
+
+			}).catch(err => deferred.reject(err)).done()
 			
 		}
 	})
@@ -113,17 +123,15 @@ function handleNotificationsByEmail (data) {
 
 	email.newAsync(data.to, data.subject, data.template, data.context, data.attachments).then(info => {
 		deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
-	}).catch(err => {
-		deferred.reject(err)
-	})
+	}).catch(err => deferred.reject(err))
 
 	return deferred.promise
 }
 
-function saveOnInsigniaDb (sms, o) {
+function saveOnInsigniaDb (con, sms, o) {
 	const deferred = Q.defer()
 
-	db.connection.insignia.query(
+	con.query(
 		{
 			sql: 'INSERT INTO smsin (id_sms, origen, sc, contenido, estado, data_arrive, time_arrive, desp_op, id_producto) VALUES (?, ?, ?, ?, ?, CURDATE(), CURTIME(), ?, ?)',
 			timeout: 60000
@@ -139,15 +147,16 @@ function saveOnInsigniaDb (sms, o) {
 		],
 		(error, result) => {
 			if (error) {
+				console.log('ERROR EN SMSIN CREDITCARD PAYPAL', error)
 				deferred.reject({
-					'status': 500,
-					'message': [
+					status: 500,
+					details: [
 						{
 							issue: 'Error al procesar solicitud en mysql en base de datos sms.'
 						}
 					], 
-					'error_code': 15,
-					'error': error
+					error_code: 15,
+					error: error
 				})
 			} else
 				deferred.resolve(result)
@@ -157,11 +166,11 @@ function saveOnInsigniaDb (sms, o) {
 	return deferred.promise
 }
 
-function saveOnIPSDb (payment, data, o, sms) {
+function saveOnIPSDb (con, payment, data, o, sms) {
 	const deferred = Q.defer()
 
 	// Save transaction on ips db
-	db.connection.ips.query(
+	con.query(
 		'INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, payer_info_email, id_compra, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, 2, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 		[
 			payment.transactions[0].related_resources[0].sale.state,
@@ -183,19 +192,29 @@ function saveOnIPSDb (payment, data, o, sms) {
 		(error, result) => {
 			if (error) {
 				deferred.reject({
-					'status': 500,
-					'message': [
+					status: 500,
+					details: [
 						{
 							issue: 'Error al procesar solicitud en mysql.'
 						}
 					], 
-					'error_code': 17,
-					'error': error
+					error_code: 17,
+					error: error
 				})
-			} else
-				deferred.resolve(result)
+			} else deferred.resolve(result)
 		}
 	)
+
+	return deferred.promise
+}
+
+function getDbConnection () {
+	const deferred = Q.defer()
+
+	Q.all([
+		db.promise.ips(),
+		db.promise.insignia()
+	]).spread((ips, smsin) => deferred.resolve({ con: { ips, smsin } })).catch(err => deferred.reject(err)).done()
 
 	return deferred.promise
 }
@@ -236,14 +255,14 @@ module.exports = {
 				res.status(500).render('error', {
 					title: 'Ha ocurrido un problema',
 					error: {
-						'status': 500,
-						'message': [
+						status: 500,
+						details: [
 							{
 								issue: 'Error al tratar de decodificar el token de autentificación.'
 							}
 						],
-						'error_code': 10,
-						'error': token.error
+						error_code: 10,
+						error: token.error
 					}
 				})
 			} else {
@@ -283,13 +302,13 @@ module.exports = {
 			res.status(400).render('error', {
 				title: 'Ha ocurrido un problema',
 				error: {
-					'status': 400,
-					'message': [
+					status: 400,
+					details: [
 						{
 							issue: 'El cuerpo de la petición no existe.'
 						}
 					],
-					'error_code': 13
+					error_code: 13
 				}
 			})
 		}

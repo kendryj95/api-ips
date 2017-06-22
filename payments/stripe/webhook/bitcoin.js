@@ -1,7 +1,8 @@
-const Q     = require('q')
-const db    = require('../../../config/db')
-const email = require('../../../enviroments/email')
-const path  = require('path')
+const Q            = require('q')
+const db           = require('../../../config/db')
+const email        = require('../../../enviroments/email')
+const notification = require('../../../enviroments/notifications/')
+const path         = require('path')
 
 function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 	const deferred = Q.defer()
@@ -102,13 +103,17 @@ function handleChargeable (webhook, url) {
 			}]
 		}
 
-		handleNotificationsByEmail(email).then(r => {
+		const sms = {
+			phone: result.client.phone,
+			message: `Nuevo pago con bitcoins creado, porfavor conforme su pago siguiendo los pasos enviados a su direccion de correo electrónico`
+		}
 
-			console.log(r)
+		//handleNotificationsByEmail(email).then(r => console.log(r)).catch(err => console.log(err))
 
-		}).catch(err => {
-			console.log(err)
-		})
+		notification.new(email, sms).then(response => {
+			console.log('EMAIL ENVIADO', response.email)
+			console.log('SMS ENVIADO', response.sms)
+		}).catch(err => console.log(err))
 
 	}).catch(err => {
 		console.log(err)
@@ -137,11 +142,17 @@ function handleCanceled (webhook) {
 			}]
 		}
 
-		handleNotificationsByEmail(email).then(r => {
-			console.log(r)
-		}).catch(err => {
-			console.log(err)
-		})
+		const sms = {
+			phone: result.client.phone,
+			message: `El tiempo para conforma su pago con id ${id_api_call} ha expirado, porfavor intente de nuevo.`
+		}
+
+		//handleNotificationsByEmail(email).then(r => console.log(r)).catch(err => console.log(err))
+
+		notification.new(email, sms).then(response => {
+			console.log('EMAIL ENVIADO', response.email)
+			console.log('SMS ENVIADO', response.sms)
+		}).catch(err => console.log(err))
 
 	}).catch(error => {
 		console.log(error)

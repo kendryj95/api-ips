@@ -1,7 +1,7 @@
-const countries = require('../enviroments/countries')
-const db        = require('../config/db')
-const Q         = require('q')
-const crypto    = require('../enviroments/crypto')
+const countries      = require('../enviroments/countries')
+const db             = require('../config/db')
+const Q              = require('q')
+const crypto         = require('../enviroments/crypto')
 
 function getDbConnection () {
 	const deferred = Q.defer()
@@ -15,25 +15,28 @@ function getMetodosDePago (con) {
 	const deferred = Q.defer()
 
 	con.query(
-		{
-			sql: 'SELECT mp.descripcion, mp.status FROM metodos_de_pago mp',
-			timeout: 60000
-		},
-		(err, results, fields) => {
-			if (err) 
-				deferred.reject(err)
-			else
-				deferred.resolve(results)
+	{
+		sql: 'SELECT mp.descripcion, mp.status FROM metodos_de_pago mp',
+		timeout: 60000
+	},
+	(err, results, fields) => {
+		if (err) 
+			deferred.reject(err)
+		else
+			deferred.resolve(results)
+
+			// CERRAR CONEXION
+			con.release()
 		}
-	)
+		)
 
 	return deferred.promise
 }
 
 module.exports = (req, res) => {
-	let purchase = ''
+	let purchase     = ''
 	let redirect_url = ''
-	let token = ''
+	let token        = ''
 
 	if (req.ips_session && req.ips_session.user_info && req.ips_session.purchase) {
 
@@ -50,58 +53,66 @@ module.exports = (req, res) => {
 
 		// Guardar info del cliente en ips_session encriptadas
 		const userInfo = {
-			ip: req.ip,
-			isReqFresh: req.fresh,
-			isReqStale: req.stale,
-			isXhrFilled: req.xhr,
-			origin: `${req.protocol}://${req.hostname}/`,
-			reqDate: parseInt(require('moment')().format('x'))
+			ip          : req.ip,
+			isReqFresh  : req.fresh,
+			isReqStale  : req.stale,
+			isXhrFilled : req.xhr,
+			origin      : `${req.protocol}://${req.hostname}/`,
+			reqDate     : parseInt(require('moment')().format('x'))
 		}
 		req.ips_session.user_info = userInfo
-						
+
 		// Guardamos info de la compra actual en ips_session encriptadas
 		req.ips_session.purchase = { purchase, redirect_url, token }
 	} else {
 		return res.status(400).render('error', {
-			title: 'Ha ocurrido un error tratando de crear un nuevo pago',
-			error: {
-
+			title : 'Ha ocurrido un error tratando de crear un nuevo pago',
+			error : {
+				status: 400,
+				details: [
+				{
+					issue: 'No hay información acerca de la compra.'
+				}
+				],
+				error_code: 50
 			}
 		})
-	}
+	}	
 
-	// Crear conexión con base de datos
-	getDbConnection().then(con => {
-		// Obtener metodos de pago desde db
-		getMetodosDePago(con).then(metodos => {
+	if (purchase && redirect_url, token) {
+		/*
+		 * Crear conexión con base de datos
+		 * Obtener metodos de pago desde db
+		 */
+		 getDbConnection().then(getMetodosDePago).then(metodos => {
 
-			let metodos_de_pago = []
-			
-			metodos.forEach(metodo => {
-				if (metodo.status != 0) {
-					if (metodo.descripcion === 'PAYPAL_CREDITCARD') {
-						metodos_de_pago.push({
-							key_name: metodo.descripcion.trim().toLowerCase(),
-							name: 'Tarjeta de credito',
-							descripcion: metodo.descripcion,
-							estado: metodo.status,
-							form: function() {
-								return metodo.descripcion.trim().toLowerCase() + '_form'
-							}
-						})	
-					} else {
-						metodos_de_pago.push({
-							key_name: metodo.descripcion.trim().toLowerCase(),
-							name: metodo.descripcion.replace('_', ' ').toUpperCase(),
-							descripcion: metodo.descripcion,
-							estado: metodo.status,
-							form: function() {
-								return metodo.descripcion.trim().toLowerCase() + '_form'
-							}
-						})
-					}
-				}
-			})
+		 	let metodos_de_pago = []
+
+		 	metodos.forEach(metodo => {
+		 		if (metodo.status != 0) {
+		 			if (metodo.descripcion === 'PAYPAL_CREDITCARD') {
+		 				metodos_de_pago.push({
+		 					key_name: metodo.descripcion.trim().toLowerCase(),
+		 					name: 'Tarjeta de credito',
+		 					descripcion: metodo.descripcion,
+		 					estado: metodo.status,
+		 					form: () => {
+		 						return `${metodo.descripcion.trim().toLowerCase()}_form`
+		 					}
+		 				})	
+		 			} else {
+		 				metodos_de_pago.push({
+		 					key_name: metodo.descripcion.trim().toLowerCase(),
+		 					name: metodo.descripcion.replace('_', ' ').toUpperCase(),
+		 					descripcion: metodo.descripcion,
+		 					estado: metodo.status,
+		 					form: () => {
+		 						return `${metodo.descripcion.trim().toLowerCase()}_form`
+		 					}
+		 				})
+		 			}
+		 		}
+		 	})
 
 			// Mostrar resumen de la compra y los metodos de pago disponibles
 			res.render('new', {
@@ -114,41 +125,8 @@ module.exports = (req, res) => {
 			})
 
 		}).catch(err => {
-			if (err.code === 'PROTOCOL_SEQUENCE_TIMEOUT')
-				res.redirect('back')
-			else {
-				res.render('error', {
-					title: 'ERROR', 
-					error: {
-						'status': 500,
-						'details': [
-							{
-								issue: JSON.stringify(err)
-							}
-						],
-						'error_code': 32,
-						'error': err
-					}
-				})
-			}
-		})
+			console.log('ERROR GET METODOS DE PAGO', err)
+		}).done()
 
-		// Cerrar conexión con base de datos
-		con.release()		
-	}).catch(err => {
-		res.status(500).render('error', {
-			title: 'Error en conexión con base de datos',
-			error: {
-				status: 500,
-				details: [
-					{
-						issue: 'Error en conexión con base de datos.'
-					}
-				],
-				error_code: 49,
-				error: err
-			}
-		})
-	})
-
+	}
 }
