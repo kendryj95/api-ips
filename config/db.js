@@ -71,7 +71,7 @@ function getConnectionPromisifed (pool) {
 			pool.getConnection((err, con) => {
 				if (err) reject(err)
 				else {
-					console.log(`${db.toUpperCase()}: MySQL Connection ${con.threadId} created`)
+					console.log(`MySQL Connection ${con.threadId} created`)
 					resolve(con)
 				}
 			})
