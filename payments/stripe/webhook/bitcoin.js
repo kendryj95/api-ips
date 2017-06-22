@@ -7,7 +7,58 @@ const path         = require('path')
 function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 	const deferred = Q.defer()
 
-	db.pool.ips.getConnection((err, con) => {
+	const { pool, getConnection } = db.b.ips()
+
+	getConnection(pool).then(con => {
+		con.query(
+			{
+				sql: 'SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?',
+				timeout: 900		
+			},
+			[
+				id_api_call
+			],
+			(err, results) => {
+				if (err)
+					deferred.reject(err)
+				else {
+					let updates = []
+
+					results.forEach(o => {
+						updates.push(new Promise((resolve, reject) => {
+							con.query(
+								'UPDATE pagos SET estado_pago = ?, estado_compra = ? WHERE id_api_call = ?',
+								[
+									status,
+									estado_compra,
+									id_api_call
+								],
+								(err, result) => {
+									if (err)
+										reject(err)
+									else 
+										resolve(result)
+								}
+							)
+						}))							
+					})
+
+					Q.all(updates).then(result => {
+						deferred.resolve({
+							client: {
+								email: results[0].email,
+								phone: results[0].phone
+							}
+						})
+					}).catch(error => deferred.reject(error))
+				}
+			}
+		)
+	}).catch(err => deferred.reject(err))
+
+	pool.destroy()
+
+	/*db.pool.ips.getConnection((err, con) => {
 		if (err) {
 			deferred.reject(err)
 		} else {
@@ -63,7 +114,7 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 			)
 
 		}
-	})
+	})*/
 
 	return deferred.promise
 }

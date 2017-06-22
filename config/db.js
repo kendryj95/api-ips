@@ -1,4 +1,5 @@
 const mysql    = require('mysql')
+const Q        = require('q')
 
 const user     = 'carmen.soto'
 const password = '$q9WnZMVLj'
@@ -78,6 +79,21 @@ function getConnectionPromisifed (db) {
 	}
 }
 
+function getConnectionP (db) {
+	return () => {
+		const pool          = createPoolConnection(db)
+		const getConnection = pool => {
+			const deferred = Q.defer()
+			pool.getConnection((err, con) => {
+				if (err) deferred.reject(err)
+				else deferred.resolve(con)
+			})
+			return deferred.promise
+		}
+		return { pool, getConnection }
+	}
+}
+
 module.exports = {
 	pool: {
 		insignia: con_insignia_pool,
@@ -92,5 +108,8 @@ module.exports = {
 		insignia: getConnectionPromisifed('sms'),
 		insignia_alarmas: getConnectionPromisifed('insignia_alarmas'),
 		insignia_masivo_premium: getConnectionPromisifed('insignia_masivo_premium')
+	},
+	b: {
+		ips: getConnectionP('insignia_payments_solutions')
 	}
 }
