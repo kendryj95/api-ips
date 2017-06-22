@@ -65,10 +65,10 @@ con_insignia_masivo_premium_pool.on('enqueue',() => {
 	console.log('IPS DB: MySQL Connection %d released', connection.threadId);
 })
 
-function getConnectionPromisifed (db) {
+function getConnectionPromisifed (pool) {
 	return () => {
 		return new Promise((resolve, reject) => {
-			createPoolConnection(db).getConnection((err, con) => {
+			pool.getConnection((err, con) => {
 				if (err) reject(err)
 				else {
 					console.log(`${db.toUpperCase()}: MySQL Connection ${con.threadId} created`)
@@ -76,21 +76,6 @@ function getConnectionPromisifed (db) {
 				}
 			})
 		})
-	}
-}
-
-function getConnectionP (db) {
-	return () => {
-		const pool          = createPoolConnection(db)
-		const getConnection = pool => {
-			const deferred = Q.defer()
-			pool.getConnection((err, con) => {
-				if (err) deferred.reject(err)
-				else deferred.resolve(con)
-			})
-			return deferred.promise
-		}
-		return { pool, getConnection }
 	}
 }
 
@@ -104,12 +89,9 @@ module.exports = {
 		ips: con_ips
 	},
 	promise: {
-		ips: getConnectionPromisifed('insignia_payments_solutions'),
-		insignia: getConnectionPromisifed('sms'),
-		insignia_alarmas: getConnectionPromisifed('insignia_alarmas'),
-		insignia_masivo_premium: getConnectionPromisifed('insignia_masivo_premium')
-	},
-	b: {
-		ips: getConnectionP('insignia_payments_solutions')
+		ips: getConnectionPromisifed(con_ips_pool),
+		insignia: getConnectionPromisifed(con_insignia_pool),
+		insignia_alarmas: getConnectionPromisifed(con_insignia_alarmas_pool),
+		insignia_masivo_premium: getConnectionPromisifed(con_insignia_masivo_premium_pool)
 	}
 }
