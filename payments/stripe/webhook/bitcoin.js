@@ -7,9 +7,9 @@ const path         = require('path')
 function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 	const deferred = Q.defer()
 
-	const { pool, getConnection } = db.b.ips()
+	const ips = db.b.ips()
 
-	getConnection(pool).then(con => {
+	ips.getConnection(ips.pool).then(con => {
 		con.query(
 			{
 				sql: 'SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?',
