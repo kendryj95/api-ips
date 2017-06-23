@@ -5,7 +5,7 @@ const Q     = require('q')
 function createNotification (emailData, smsData) {
 	const deferred = Q.defer()
 
-	Q.allSettled([
+	Q.all([
 		email.new(emailData),
 		sms.new(smsData)
 	]).spread((emailResponse, smsResponse) => {

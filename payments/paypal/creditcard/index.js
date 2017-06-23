@@ -1,9 +1,7 @@
-const paypal      = require('../config/setup')
+const paypal      = require('../../../config/setup')
 const Q           = require('q')
 const querystring = require('querystring')
-const db          = require('../config/db')
-const email       = require('../enviroments/email')
-const path        = require('path')
+const db          = require('../../../config/db')
 
 function processPay (data, token) {
 	const deferred = Q.defer()
@@ -118,16 +116,6 @@ function processPay (data, token) {
 	return deferred.promise
 }
 
-function handleNotificationsByEmail (data) {
-	const deferred = Q.defer()
-
-	email.newAsync(data.to, data.subject, data.template, data.context, data.attachments).then(info => {
-		deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
-	}).catch(err => deferred.reject(err))
-
-	return deferred.promise
-}
-
 function saveOnInsigniaDb (con, sms, o) {
 	const deferred = Q.defer()
 
@@ -219,98 +207,73 @@ function getDbConnection () {
 	return deferred.promise
 }
 
-module.exports = {
-	paypal: function(req, res) {
+module.exports = (req, res) => {
+	const base_url = `${req.protocol}://${req.get('host')}`
 
-		const base_url = `${req.protocol}://${req.get('host')}`
-
-		if (req.body && req.body.purchase && req.body.redirect_url) {
-			const data = {
-				purchase: JSON.parse(req.body.purchase),
-				payer: {
-					first_name: req.body.first_name,
-					last_name: req.body.last_name,
-					address: req.body.address,
-					city: req.body.city,
-					state: req.body.state,
-					postal_code: req.body.postal_code,
-					country: req.body.country,
-					cc: {
-						cc_type: req.body.cc_type,
-						cc_number: req.body.cc_number,
-						cc_expiration_date: req.body.cc_expiration_date,
-						cc_cvv: req.body.cc_cvv
-					}
-				},
-				redirect_url: req.body.redirect_url,
-				client: {
-					email: req.body.email,
-					telephone: req.body.telephone
+	if (req.body && req.body.purchase && req.body.redirect_url) {
+		const data = {
+			purchase: JSON.parse(req.body.purchase),
+			payer: {
+				first_name: req.body.first_name,
+				last_name: req.body.last_name,
+				address: req.body.address,
+				city: req.body.city,
+				state: req.body.state,
+				postal_code: req.body.postal_code,
+				country: req.body.country,
+				cc: {
+					cc_type: req.body.cc_type,
+					cc_number: req.body.cc_number,
+					cc_expiration_date: req.body.cc_expiration_date,
+					cc_cvv: req.body.cc_cvv
 				}
+			},
+			redirect_url: req.body.redirect_url,
+			client: {
+				email: req.body.email,
+				telephone: req.body.telephone
 			}
+		}
 
-			const token_encoded = req.body.token
-			const token = require('../enviroments/token').getTokenDecoded(token_encoded)
-			if (token.error) {
-				res.status(500).render('error', {
-					title: 'Ha ocurrido un problema',
-					error: {
-						status: 500,
-						details: [
-							{
-								issue: 'Error al tratar de decodificar el token de autentificación.'
-							}
-						],
-						error_code: 10,
-						error: token.error
-					}
-				})
-			} else {
-
-				processPay(data, token).then(data => {
-
-					// Enviar una notificación por email y sms
-					let email = {
-						to: req.body.email,
-						id_api_call: data.id_api_call,
-						subject: 'Nuevo pago procesado satisfactoriamente',
-						template: 'payment_succeeded',
-						attachments: [{
-							filename: 'logo.png',
-							path: path.resolve('public/images/logo.png'),
-							cid: 'logoinsignia'
-						}],
-						context: {
-							email: req.body.email,
-						}
-					}
-					handleNotificationsByEmail(email).then(r => {
-						console.log('MENSAJE ENVIADO SATISFACTORIAMENTE', r)
-					}).catch(err => {
-						console.log('ERROR AL ENVIAR MENSAJE', err)
-					})
-
-					res.redirect(data.approval_url)
-				}).catch(error => {
-					console.log('ERROR', error)
-					res.status(500).render('error', error)
-				})
-
-			}
-
-		} else {
-			res.status(400).render('error', {
+		const token_encoded = req.body.token
+		const token = require('../enviroments/token').getTokenDecoded(token_encoded)
+		if (token.error) {
+			res.status(500).render('error', {
 				title: 'Ha ocurrido un problema',
 				error: {
-					status: 400,
+					status: 500,
 					details: [
 						{
-							issue: 'El cuerpo de la petición no existe.'
+							issue: 'Error al tratar de decodificar el token de autentificación.'
 						}
 					],
-					error_code: 13
+					error_code: 10,
+					error: token.error
 				}
 			})
+		} else {
+
+			processPay(data, token).then(data => {
+				res.redirect(data.approval_url)
+			}).catch(error => {
+				console.log('ERROR', error)
+				res.status(500).render('error', error)
+			})
+
 		}
+
+	} else {
+		res.status(400).render('error', {
+			title: 'Ha ocurrido un problema',
+			error: {
+				status: 400,
+				details: [
+					{
+						issue: 'El cuerpo de la petición no existe.'
+					}
+				],
+				error_code: 13
+			}
+		})
 	}
 }

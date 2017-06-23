@@ -1,10 +1,10 @@
 module.exports = {
 	new: require('../static/new_sale'),
 	pay: {
-		creditcard: require('../payments/creditcard').paypal,
+		creditcard: require('../payments/paypal/creditcard/'),
 		paypal: {
-			prepare: require('../payments/paypal').prepare,
-			execute: require('../payments/paypal').execute
+			prepare: require('../payments/paypal/paypal/prepare'),
+			execute: require('../payments/paypal/paypal/execute')
 		},
 		stripe: {
 			creditcard: require('../payments/stripe/creditcard'),

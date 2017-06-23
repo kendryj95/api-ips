@@ -1,36 +1,19 @@
-const countries      = require('../enviroments/countries')
-const db             = require('../config/db')
-const Q              = require('q')
-const crypto         = require('../enviroments/crypto')
+const countries        = require('../enviroments/countries')
+const db               = require('../config/db')
 
-function getDbConnection () {
-	const deferred = Q.defer()
-
-	db.promise.ips().then(con => deferred.resolve(con)).catch(err => deferred.reject(err))
-
-	return deferred.promise
-}
-
-function getMetodosDePago (con) {
-	const deferred = Q.defer()
-
-	con.query(
-	{
-		sql: 'SELECT mp.descripcion, mp.status FROM metodos_de_pago mp',
-		timeout: 60000
-	},
-	(err, results, fields) => {
-		if (err) 
-			deferred.reject(err)
-		else
-			deferred.resolve(results)
-
-			// CERRAR CONEXION
-			con.release()
-		}
+function getMetodosDePagos () {
+	return new Promise((resolve, reject) => {
+		db.connection.ips.query(
+			{
+				sql     : 'SELECT status, descripcion FROM metodos_de_pago',
+				timeout : 6000
+			},
+			(err, result) => {
+				if (err) reject(err)
+				else resolve(result)
+			}
 		)
-
-	return deferred.promise
+	})
 }
 
 module.exports = (req, res) => {
@@ -80,13 +63,9 @@ module.exports = (req, res) => {
 	}	
 
 	if (purchase && redirect_url, token) {
-		/*
-		 * Crear conexión con base de datos
-		 * Obtener metodos de pago desde db
-		 */
-		 getDbConnection().then(getMetodosDePago).then(metodos => {
-
-		 	let metodos_de_pago = []
+		// Obtener metodos de pago desde db
+		getMetodosDePagos().then(metodos => {
+			let metodos_de_pago = []
 
 		 	metodos.forEach(metodo => {
 		 		if (metodo.status != 0) {
@@ -123,10 +102,9 @@ module.exports = (req, res) => {
 				token,
 				metodos_de_pago
 			})
-
 		}).catch(err => {
-			console.log('ERROR GET METODOS DE PAGO', err)
-		}).done()
-
+			console.error('ERROR', err)
+			err instanceof Error ? res.status(400).send("General error") : res.status(200).json({ "code": 1000, "message": err })
+		})
 	}
 }

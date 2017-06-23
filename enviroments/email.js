@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer')
-const hbs = require('nodemailer-express-handlebars')
-const Q = require('q')
+const hbs        = require('nodemailer-express-handlebars')
+const Q          = require('q')
 
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({

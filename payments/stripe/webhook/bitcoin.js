@@ -4,65 +4,64 @@ const email        = require('../../../enviroments/email')
 const notification = require('../../../enviroments/notifications/')
 const path         = require('path')
 
+function getClientDataFromPayment (id_api_call) {
+	return new Promise((resolve, reject) => {
+		db.connection.ips.query(
+			{
+				sql     : 'SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?',
+				timeout : 6000
+			},
+			[
+				id_api_call
+			],
+			(err, result) => {
+				if (err) reject(err)
+				else resolve(result)
+			}
+		)
+	})
+}
+
+function updateUpdatePayment (id_api_call, estado_pago, estado_compra) {
+	return new Promise((resolve, reject) => {
+		db.connection.ips.query(
+			{
+				sql     : 'UPDATE pagos SET estado_pago = ?, estado_compra = ? WHERE id_api_call = ?',
+				timeout : 6000
+			},
+			[
+				estado_pago,
+				estado_compra,
+				id_api_call
+			],
+			(err, result) => {
+				if (err) reject(err)
+				else resolve(result)
+			}
+		)
+	})
+}
+
 function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 	const deferred = Q.defer()
 
-	db.pool.ips.getConnection((err, con) => {
-		if (err) {
-			deferred.reject(err)
-		} else {
-			
-			console.log(status)
+	Q.all([
+		getClientDataFromPayment(id_api_call),
+		updateUpdatePayment(id_api_call, status, estado_compra)
+	]).spread((client, resultUpdate) => {
+		console.log('RESULTADO DEL UPDATE', resultUpdate)
+		deferred.resolve({
+			client: {
+				email: results[0].email,
+				phone: results[0].phone
+			}
+		})
+	}).catch(err => deferred.reject(err))
 
-			con.query(
-				{
-					sql: 'SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?',
-					timeout: 900		
-				},
-				[
-					id_api_call
-				],
-				(err, results) => {
-					if (err) {
-						deferred.reject(err)
-					} else {
-						let updates = []
-
-						results.forEach(o => {
-							updates.push(new Promise((resolve, reject) => {
-								con.query(
-									'UPDATE pagos SET estado_pago = ?, estado_compra = ? WHERE id_api_call = ?',
-									[
-										status,
-										estado_compra,
-										id_api_call
-									],
-									(err, result) => {
-										if (err) {
-											reject(err)
-										} else {
-											resolve(result)
-										}
-									}
-								)
-							}))							
-						})
-
-						Q.all(updates).then(result => {
-							deferred.resolve({
-								client: {
-									email: results[0].email,
-									phone: results[0].phone
-								}
-							})
-						}).catch(error => {
-							deferred.reject(error)
-						})
-					}
-				}
-			)
-
-		}
+	Promise.resolve().then(() => {
+		return getClientDataFromPayment(id_api_call)
+	}).then(client => {
+		return 
 	})
 
 	return deferred.promise
