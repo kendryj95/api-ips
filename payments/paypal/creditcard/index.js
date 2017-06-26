@@ -2,6 +2,7 @@ const paypal      = require('../../../config/setup')
 const Q           = require('q')
 const querystring = require('querystring')
 const db          = require('../../../config/db')
+const tokenHelper = require('../../../enviroments/token')
 
 function processPay (data, token) {
 	const deferred = Q.defer()
@@ -236,7 +237,7 @@ module.exports = (req, res) => {
 		}
 
 		const token_encoded = req.body.token
-		const token = require('../enviroments/token').getTokenDecoded(token_encoded)
+		const token = tokenHelper.getTokenDecoded(token_encoded)
 		if (token.error) {
 			res.status(500).render('error', {
 				title: 'Ha ocurrido un problema',
