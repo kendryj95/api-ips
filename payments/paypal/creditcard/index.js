@@ -200,9 +200,17 @@ function saveOnIPSDb (con, payment, data, o, sms) {
 function getDbConnection () {
 	const deferred = Q.defer()
 
+	let getConnections = (pool) => {
+		return new Promise((resolve, reject) => {
+			pool.getConnection((err, con) => {
+				err ? reject(err) : resolve(con)
+			})
+		})
+	}
+
 	Q.all([
-		db.promise.ips(),
-		db.promise.insignia()
+		getConnections(db.connection.ips),
+		getConnections(db.connection.sms)
 	]).spread((ips, smsin) => deferred.resolve({ con: { ips, smsin } })).catch(err => deferred.reject(err)).done()
 
 	return deferred.promise
@@ -257,8 +265,26 @@ module.exports = (req, res) => {
 			processPay(data, token).then(data => {
 				res.redirect(data.approval_url)
 			}).catch(error => {
-				console.log('ERROR', error)
-				res.status(500).render('error', error)
+				let err = {}
+				err.error.error_code = error.error.error_code
+				err.error.status     = error.error.status
+				err.title            = error.title
+				if (err.error.error.response) {
+					switch (err.error.error.response.name) {
+						case 'UNKNOWN_ERROR':
+							err.error.details = [
+								{ issue: 'Ha ocurrido un error desconocido, porfavor intente de nuevo.' }
+							]
+						break
+						default:
+							err = error
+							err.error.details = [
+								{ issue: 'Ha ocurrido un error desconocido, porfavor intente de nuevo.' }
+							]
+						break
+					}
+				}
+				res.status(500).render('error', err)
 			})
 
 		}
