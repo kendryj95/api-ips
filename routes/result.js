@@ -3,10 +3,10 @@ const crypto      = require('../enviroments/crypto')
 const db          = require('../config/db')
 const Q           = require('q')
 
-function updateOnDb (con, payment) {
+function updateOnDb (payment) {
 	const deferred = Q.defer()
 
-	con.query(
+	db.connection.ips.query(
 		{
 			sql: `UPDATE pagos SET estado_compra = ?, estado_pago = ? WHERE id_api_call = ?`,
 			timeout: 60000
@@ -33,16 +33,9 @@ function updateOnDb (con, payment) {
 
 function db_record (payment) {
 	const deferred = Q.defer()
-
-	db.promise.ips().then(con => {
 		
-		updateOnDb(con, { estado_compra: 'error_pago', estado_pago: 'canceled', id_api_call: payment.id }).then(res => {
-			deferred.resolve(res)
-		}).catch(err => {
-			deferred.reject(err)
-		})
-
-		con.release()
+	updateOnDb({ estado_compra: 'error_pago', estado_pago: 'canceled', id_api_call: payment.id }).then(res => {
+		deferred.resolve(res)
 	}).catch(err => {
 		deferred.reject(err)
 	})

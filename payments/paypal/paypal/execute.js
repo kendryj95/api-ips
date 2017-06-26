@@ -111,7 +111,7 @@ function updateIntoPagoIps (con, payment, data) {
 	return deferred.promise
 }
 
-function saveOnDatabase (payment, paymentId) {
+function saveOnDatabase (payment, paymentId, base_url) {
 	const deferred = Q.defer()
 
 	Q.all([
@@ -153,10 +153,10 @@ function saveOnDatabase (payment, paymentId) {
 					status: 200,
 					message: 'Pago procesado staisfactoriamente.',
 					client: {
-						email: results[0].consumidor_email,
-						phone: results[0].consumidor_telefono
+						email: pagos[0].consumidor_email,
+						phone: pagos[0].consumidor_telefono
 					},
-					url: results[0].redirect_url,
+					url: pagos[0].redirect_url,
 					idCompra: payment.transactions[0].related_resources[0].sale.id
 				})
 
@@ -193,6 +193,8 @@ function executePayment (paymentId, payerId) {
 
 	paypal.payment.execute(paymentId, payerId, (err, payment) => {
 		if(err) {
+			console.log(err)
+			updateOnFail(paymentId, 'errores', 'pago_no_aprovado').then(res => console.log('BD ACTUALIZADA')).catch(err => console.error('ERROR', err))
 			deferred.reject({
 				title: 'Ha ocurrido un problema', 
 				error: {
@@ -238,42 +240,40 @@ module.exports = function(req, res) {
 	const payerId = { 
 		payer_id: req.query.PayerID 
 	}
+	const base_url = `${req.protocol}://${req.get('host')}`
 
-	let onSuccess = () => {
-		saveOnDatabase(payment, paymentId).then(response => console.log('DB SAVE RESULT', response)).catch(err => console.error('ERROR', err))
-		const url = req.protocol + '://' +req.get('host') + '/sales/success?' + querystring.stringify({ url: data.url, paymentId: paymentId, idCompra: data.idCompra })
-		return Q.defer().resolve(url)
-	}
-
-	let onFail = () => {
-		updateOnFail(paymentId, 'no_aprovado').then(res => console.log('BD ACTUALIZADA')).catch(err => console.error('ERROR', err))
-		return Q.defer().reject({
-			title: 'Su pago no pudo ser procesado', 
-			error: {
-				status: 500,
-				details: [
-					{
-						issue: err.response.message
-					}
-				],
-				error_code: 26,
-				error: err
-			}
+	let execute = (payerId, paymentId, base_url) => {
+		return new Promise((resolve, reject) => {
+			
 		})
 	}
 
 	executePayment(paymentId, payerId).then(payment => {
-		return payment.state === 'approved' ? onSuccess() : onFail()
-	}).then(url => {
-		res.redirect(url)
-	}).catch(err => {
-		if (err.error.error.response.name === 'PAYMENT_ALREADY_DONE') {
-			res.send('PAYMENT_ALREADY_DONE')
+		if (payment.state === 'approved') {
+			saveOnDatabase(payment, paymentId).then(response => {
+				console.log('DB SAVE RESULT', response)
+				const url = `${base_url}/sales/success?${querystring.stringify({ url: response.url, paymentId: paymentId, idCompra: response.idCompra })}`
+				res.redirect(url)
+			}).catch(err => console.error('ERROR', err))
 		} else {
-			console.log('ERROR AL EJECUTAR EL PAGO', err.error)
-			updateOnFail(paymentId, 'canceled', 'pago_no_aprovado').then(res => console.log('BD ACTUALIZADA')).catch(err => console.error('ERROR', err))
-			res.status(err.error.status).render('error', err)
+			updateOnFail(paymentId, 'no_aprovado').then(res => console.log('BD ACTUALIZADA')).catch(err => console.error('ERROR', err))
+			res.status(400).render('error', {
+				title: 'Su pago no pudo ser procesado', 
+				error: {
+					status: 400,
+					details: [
+						{
+							issue: `El pago no ha sido aprovado. (Estado del pago: ${payment.state})`
+						}
+					],
+					error_code: 26,
+					error: err
+				}
+			})
 		}
+
+	}).catch(err => {
+		res.status(400).render('error', err)
 	}).done(() => {
 		console.log('EJECUCION DEL PAGO FINALIZADA')
 	})

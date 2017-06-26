@@ -196,9 +196,6 @@ function processPayment (base_url, purchase, redirect_url, client, token) {
 
 module.exports = function(req, res, next) {
 	if (req.body.token && req.body.purchase && req.body.redirect_url) {
-		// paypal configuration
-		require('../../config/setup')
-
 		const purchase     = JSON.parse(req.body.purchase)
 		const redirect_url = req.body.redirect_url
 		const base_url     = `${req.protocol}://${req.get('host')}`

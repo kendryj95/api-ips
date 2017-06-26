@@ -1,5 +1,7 @@
 const mysql    = require('mysql')
 
+let env = process.env.ENV === 'PROD' ? process.env.ENV : 'DEV'
+
 const testDbCredentials = {
 	user     : 'carmen.soto',
 	password : '$q9WnZMVLj',
