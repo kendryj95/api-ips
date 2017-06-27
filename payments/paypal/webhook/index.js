@@ -1,3 +1,4 @@
 module.exports = (req, res) => {
-	res.send('Hola')
+	console.log(req.body)
+	res.sendStatus(200)
 }
