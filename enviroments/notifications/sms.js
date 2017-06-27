@@ -64,6 +64,8 @@ function newSms (data) {
 	if (typeof data !== 'object' && !data && !data.phone && data.message)
 		return deferred.reject('Data del mensaje es inexistente o incompleta')
 
+	console.log('DATA', data)
+
 	getOperadoras().then(operadoras => {
 		let phone        = getTelephoneInfo(data.phone).phone
 		let destinatario = String(phone).substr(3)
