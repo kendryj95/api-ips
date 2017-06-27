@@ -9,7 +9,7 @@ function getClientDataFromPayment (id_api_call) {
 		db.connection.ips.query(
 			{
 				sql     : 'SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?',
-				timeout : 6000
+				timeout : 60000
 			},
 			[
 				id_api_call
@@ -27,7 +27,7 @@ function updateUpdatePayment (id_api_call, estado_pago, estado_compra) {
 		db.connection.ips.query(
 			{
 				sql     : 'UPDATE pagos SET estado_pago = ?, estado_compra = ? WHERE id_api_call = ?',
-				timeout : 6000
+				timeout : 60000
 			},
 			[
 				estado_pago,
@@ -35,8 +35,9 @@ function updateUpdatePayment (id_api_call, estado_pago, estado_compra) {
 				id_api_call
 			],
 			(err, result) => {
-				if (err) reject(err)
-				else resolve(result)
+				err ? reject(err) : resolve(result)
+				//if (err) reject(err)
+				//else resolve(result)
 			}
 		)
 	})
@@ -50,6 +51,7 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 		updateUpdatePayment(id_api_call, status, estado_compra)
 	]).spread((client, resultUpdate) => {
 		console.log('RESULTADO DEL UPDATE', resultUpdate)
+		console.log({client})
 		deferred.resolve({ client })
 	}).catch(err => deferred.reject(err))
 
@@ -57,18 +59,6 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 		return getClientDataFromPayment(id_api_call)
 	}).then(client => {
 		return 
-	})
-
-	return deferred.promise
-}
-
-function handleNotificationsByEmail (data) {
-	const deferred = Q.defer()
-
-	email.newAsync(data.to, data.subject, data.template, data.context, data.attachments).then(info => {
-		deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
-	}).catch(err => {
-		deferred.reject(err)
 	})
 
 	return deferred.promise
@@ -102,16 +92,12 @@ function handleChargeable (webhook, url) {
 			message: `Nuevo pago con bitcoins creado, porfavor conforme su pago siguiendo los pasos enviados a su direccion de correo electrónico`
 		}
 
-		//handleNotificationsByEmail(email).then(r => console.log(r)).catch(err => console.log(err))
-
 		notification.new(email, sms).then(response => {
 			console.log('EMAIL ENVIADO', response.email)
 			console.log('SMS ENVIADO', response.sms)
 		}).catch(err => console.log(err))
 
-	}).catch(err => {
-		console.log(err)
-	})
+	}).catch(err => console.log(err))
 }
 
 function handleCanceled (webhook) {
