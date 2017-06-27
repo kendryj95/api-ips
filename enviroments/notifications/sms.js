@@ -10,7 +10,7 @@ const status      = 0
 function insertNewSmsOnDb (con, data) {
 	const deferred = Q.defer()
 
-	console.log('DATA INSERT NEW SMS', data)
+	console.log('MENSAJE DESPUES', data)
 
 	db.connection.insignia_alarmas.query(
 		{
@@ -19,10 +19,10 @@ function insertNewSmsOnDb (con, data) {
 		},
 		[
 			data.destinatario,
-			data.mensaje,
+			data.text,
 			tipo_evento,
 			cliente,
-			data.operadora,
+			data.operadoraId,
 			status
 		],
 		(err, result) => {
@@ -66,32 +66,28 @@ function newSms (data) {
 	if (typeof data !== 'object' && !data && !data.phone && data.message)
 		return deferred.reject('Data del mensaje es inexistente o incompleta')
 
-	console.log('DATA', data)
-
 	getOperadoras().then(operadoras => {
-		const phone        = getTelephoneInfo(data.phone).phone
-		const destinatario = String(phone).substr(3)
-		var   operadora_id = ''
+		var mensaje = {
+			phone        : getTelephoneInfo(data.phone).phone,
+			destinatario : String(phone).substr(3),
+			operadoraId  : '',
+			text         : data.message
+		}
 
 		for (let operadora of operadoras) {
 			let prefijo = phone.substr(0,3)
 
 			if (operadora.prefijo === prefijo) {
-				operadora_id = operadora.id
+				mensaje.operadoraId = operadora.id
 				break
 			} else
-				operadora_id = -99
+				mensaje.operadoraId = -99
 		}
 
-		if (operadora_id && operadora_id !== -99) {
-			let sms = {
-				destinatario,
-				mensaje: text_truncate(data.message),
-				operadora: operadora_id
-			}
-
+		if (mensaje.operadoraId && mensaje.operadoraId !== -99) {
+			console.log('MENSAJE ANTES', mensaje)
 			// Insertar en tabla outgoing dentro db insignia_alarmas
-			insertNewSmsOnDb(sms).then(result => {
+			insertNewSmsOnDb(mensaje).then(result => {
 				deferred.resolve('Se ha procesado exitosamente el sms')
 			}).catch(err => deferred.reject(err))
 
