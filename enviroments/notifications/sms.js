@@ -24,8 +24,7 @@ function insertNewSmsOnDb (con, data) {
 			status
 		],
 		(err, result) => {
-			if (err) deferred.reject(err)
-			else deferred.resolve(result)
+			err ? deferred.reject(err) : deferred.resolve(result)
 		}
 	)
 
@@ -45,8 +44,7 @@ function getOperadoras () {
 			timeout: 6000
 		},
 		(err, result) => {
-			if (err) deferred.reject(err)
-			else deferred.resolve(result)
+			err ? deferred.reject(err) : deferred.resolve(result)
 		}
 	)
 
@@ -54,13 +52,10 @@ function getOperadoras () {
 }
 
 function text_truncate (str, length, ending) {
-	length = length == null ? 158 : length
+	length = length == null ?  158  : length
 	ending = ending == null ? '...' : ending
 
-	if (str.length > length)
-		return str.substring(0, length - ending.length) + ending;
-	else
-		return str
+	return str.length > length ? str.substring(0, length - ending.length) + ending : str
 }
 
 function newSms (data) {

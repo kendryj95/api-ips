@@ -1,12 +1,17 @@
-const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
-const Q = require('q')
+const stripe      = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
+const Q           = require('q')
 const querystring = require('querystring')
-const db = require('../../../config/db')
+const db          = require('../../../config/db')
 
-function getConnectionDb () {
+function getConnectionDb (pool) {
 	const deferred = Q.defer()
 
-	db.promise.ips().then(con => deferred.resolve(con)).catch(err => deferred.reject(err))
+	pool.getConnection((err, con) => {
+		if (err)
+			deferred.reject(err)
+		else
+			deferred.resolve(con)
+	})
 
 	return deferred.promise
 }
@@ -39,12 +44,11 @@ function preparePayment (data) {
 		} else {
 			console.log(source)
 
-			getConnectionDb().then(con => {
+			getConnectionDb(db.connection.ips).then(con => {
 
-				savePaymentOnIPS(con, data, source).then((text) => deferred.resolve(source)).catch(error => deferred.reject(error))
+				savePaymentOnIPS(con, data, source).then(text => deferred.resolve(source)).catch(error => deferred.reject(error))
 
 				con.release()
-
 			}).catch(err => deferred.reject(err))
 
 

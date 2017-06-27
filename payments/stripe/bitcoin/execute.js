@@ -1,7 +1,7 @@
-const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
-const Q = require('q')
+const stripe      = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
+const Q           = require('q')
 const querystring = require('querystring')
-const db = require('../../../config/db')
+const db          = require('../../../config/db')
 
 function getPaypementsRecord (con, id_api_call) {
 	return new Promise((resolve, reject) => {
@@ -9,10 +9,7 @@ function getPaypementsRecord (con, id_api_call) {
 			`SELECT * FROM pagos p WHERE p.id_api_call = ?`,
 			[ id_api_call ],
 			(err, result) => {
-				if (err)
-					reject(err)
-				else
-					resolve(result)
+				err ? reject(err) : resolve(result)
 			}
 		)
 	})
@@ -40,8 +37,7 @@ module.exports = (req, res) => {
 	if (req.query.id_api_call) {
 		const id_api_call = req.query.id_api_call
 
-		db.promise.ips().then(con => {
-
+		db.getConnection(db.connection.ips).then(con => {
 			getPaypementsRecord(con, id_api_call).then(result => {
 				let amount = 0.0
 
@@ -82,7 +78,6 @@ module.exports = (req, res) => {
 
 			// Cerrar conexion a db
 			con.release()
-						
 		}).catch(err => {
 			res.status(500).render('error', {
 				title: 'No se ha podido procesar su pago',
@@ -98,7 +93,6 @@ module.exports = (req, res) => {
 				}
 			})
 		})
-
 	} else {
 		res.render('error', {
 			title: 'Ha ocurrido un problema',

@@ -1,7 +1,7 @@
-const stripe = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
-const Q = require('q')
+const stripe      = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
+const Q           = require('q')
 const querystring = require('querystring')
-const db = require('../../config/db')
+const db          = require('../../config/db')
 
 function processPayment (data) {
 	const deferred = Q.defer()
@@ -80,7 +80,7 @@ function processPayment (data) {
 function saveOnDB (data, charge, source) {
 	const deferred = Q.defer()
 
-	db.promise.ips().then(con => {
+	db.getConnection(db.connection.ips).then(con => {
 		let products = []
 
 		data.purchase.products.forEach(o => {
@@ -118,18 +118,13 @@ function saveOnDB (data, charge, source) {
 										'error': err
 									}
 							})
-						} else
-							resolve(result)
+						} else resolve(result)
 					}
 				)
 			}))
 		})
 
-		Q.all(products).then(result => {
-			deferred.resolve(result)
-		}).catch(err => {
-			deferred.reject(err)
-		})			
+		Q.all(products).then(result => deferred.resolve(result)).catch(err => deferred.reject(err))
 
 		con.release()
 	}).catch(err => {
@@ -154,12 +149,12 @@ function saveOnDB (data, charge, source) {
 module.exports = (req, res) => {
 	if (req.body.purchase && req.body.token && req.body.redirect_url && req.body.email && req.body.telephone && req.body.stripe_cc_edate && req.body.stripe_cc_number && req.body.stripe_cc_cvv && req.body.stripe_cc_zip) {
 
-		const exp_month = String(req.body.stripe_cc_edate).split('/')[1],
-					exp_year = String(req.body.stripe_cc_edate).split('/')[0],
-					purchase = JSON.parse(req.body.purchase),
-					token = require('../../enviroments/token').getTokenDecoded(req.body.token),
+		const exp_month    = String(req.body.stripe_cc_edate).split('/')[1],
+					exp_year     = String(req.body.stripe_cc_edate).split('/')[0],
+					purchase     = JSON.parse(req.body.purchase),
+					token        = require('../../enviroments/token').getTokenDecoded(req.body.token),
 					redirect_url = String(req.body.redirect_url),
-					client = { email: String(req.body.email), telephone: String(req.body.telephone) }
+					client       = { email: String(req.body.email), telephone: String(req.body.telephone) }
 
 		const cc_data = {
 			card: {
@@ -180,17 +175,12 @@ module.exports = (req, res) => {
 		}
 
 		processPayment(cc_data).then(data => {
-
 			// Guardar registro en db IPS
 			saveOnDB(cc_data, data.charge, data.source)
-
 			//Redireccionar pagina de success
 			res.redirect(data.approval_url)
 		})
-		.catch(error => {
-			res.status(error.error.status).render('error', error)
-		})
-
+		.catch(error => res.status(error.error.status).render('error', error))
 	} else {
 		res.status(400).render('error', {
 			title: 'No se ha realizado la petición correctamente',

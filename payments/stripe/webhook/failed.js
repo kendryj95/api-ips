@@ -30,23 +30,42 @@ function updatePaymentStatus (con, payment, id_api_call) {
 	return deferred.promise
 }
 
-function sendEmailNotification (con, id_api_call, email) {
+function sendNotification (con, id_api_call) {
 	const deferred = Q.defer()
 
 	con.query(
-		`SELECT p.consumidor_email AS email, p.id_api_call AS id_api_call FROM pagos p WHERE id_api_call = ?`,
+		`SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?`,
 		[ id_api_call ],
 		(err, result) => {
 			if (err) {
 				deferred.reject(err)
 			} else {
-				let recipient = result[0].email
-				let id_api_call = result[0].id_api_call
-				email.newAsync(recipient, email.subject, email.template, { email: recipient, id_api_call: result[0].id_api_call }, email.attachments).then(info => {
-					deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
-				}).catch(err => {
-					deferred.reject(err)
-				})
+				let recipient = {
+					email: result[0].email,
+					phone: result[0].phone
+				}
+
+				const email = {
+					to: recipient.email,
+					subject: 'Solicitud de pago fallida',
+					template: 'payment_failed',
+					context: {
+						email: recipient.email,
+						id_api_call
+					},
+					attachments: [{
+						filename: 'logo.png',
+						path: path.resolve('public/images/logo.png'),
+						cid: 'logoinsignia'
+					}]
+				}
+
+				const sms = {
+					phone: recipient.phone,
+					message: `Ha ocurrido un error al procesar su pago con id ${id_api_call}, porfavor intente de nuevo.`
+				}
+
+				notifications.new(email, sms).then(response => deferred.resolve(response)).catch(err => deferred.reject(err))
 			}
 		}
 	)
@@ -55,42 +74,24 @@ function sendEmailNotification (con, id_api_call, email) {
 }
 
 module.exports = webhook => {
-
 	const payment = {
 		estado_pago: 'failed',
 		estado_compra: 'error_pago'
 	}
 	const id_api_call = webhook.data.object.source.id
 
-	db.promise.ips().then(con => {
+	db.getConnection(db.promise.ips).then(con => {
 
 		updatePaymentStatus(con, payment, id_api_call).then(res => {
 
-			// Info de email
-			let email = {
-				subject: 'Solicitud de pago fallida',
-				template: 'payment_failed',
-				attachments: [{
-					filename: 'logo.png',
-					path: path.resolve('public/images/logo.png'),
-					cid: 'logoinsignia'					
-				}]
-			}
+			sendNotification(con, id_api_call).then(response => {
+				console.log('EMAIL ENVIADO', response.email)
+				console.log('SMS ENVIADO', response.sms)
+			}).catch(err => console.log('ERROR AL PROCESAR NOTIFICACION', err))
 
-			// Enviar email de notificacion
-			sendEmailNotification(con, id_api_call, email).then(r => {
-				console.log('MENSAJE ENVIADO', r)
-			}).catch(err => {
-				console.log('ERROR AL ENVIAR MENSAJE', err)
-			})
-
-		}).catch(err => {
-			console.log('ERROR AL ACTUALIZAR EN DB', err)
-		})
+		}).catch(err => console.log('ERROR AL ACTUALIZAR EN DB', err))
 
 		// Cerrar conexion a db
 		con.release()
-	}).catch(err => {
-		console.log('ERROR AL CONECTAR CON DB', err)
-	})
+	}).catch(err => console.log('ERROR AL CONECTAR CON DB', err))
 }

@@ -1,7 +1,8 @@
-const Q = require('q')
-const db = require('../../../config/db')
-const email = require('../../../enviroments/email')
-const path = require('path')
+const Q             = require('q')
+const db            = require('../../../config/db')
+const notifications = require('../../../enviroments/notifications/')
+const email         = require('../../../enviroments/email')
+const path          = require('path')
 
 function updatePaymentToCompleted (con, payment, id_api_call) {
 	const deferred = Q.defer()
@@ -30,25 +31,46 @@ function updatePaymentToCompleted (con, payment, id_api_call) {
 	return deferred.promise
 }
 
-function sendEmailNotification (con, data) {
+function sendNotification (con, id_api_call) {
 	const deferred = Q.defer()
 
 	con.query(
-		`SELECT p.consumidor_email AS email FROM pagos p WHERE id_api_call = ?`,
-		[ data.id_api_call ],
+		`SELECT p.consumidor_email AS email, p.consumidor_telefono AS phone FROM pagos p WHERE id_api_call = ?`,
+		[ id_api_call ],
 		(err, result) => {
 			if (err) {
 				deferred.reject(err)
 			} else {
-				console.log(result)
+				let recipient = {
+					email: result[0].email,
+					phone: result[0].phone
+				}
 
-				let recipient = result[0].email
-				
-				email.newAsync(recipient, data.subject, data.template, { email: recipient }, data.attachments).then(info => {
-					deferred.resolve(`Message ${info.messageId} sent: ${info.response}`)
-				}).catch(err => {
-					deferred.reject(err)
-				})
+				const email = {
+					to: recipient.email,
+					subject: 'Nuevo pago procesado satisfactoriamente',
+					template: 'payment_succeeded',
+					context: {
+						email: recipient.email,
+						id_api_call
+					},
+					attachments: [{
+						filename: 'logo.png',
+						path: path.resolve('public/images/logo.png'),
+						cid: 'logoinsignia'
+					}]
+				}
+
+				const sms = {
+					phone: recipient.phone,
+					message: `Su pago con id ${id_api_call} ha sido procesado satisfactoriamente.`
+				}
+
+				notifications.new(email, sms).then(response => {
+					console.log('EMAIL ENVIADO', response.email)
+					console.log('SMS ENVIADO', response.sms)
+					deferred.resolve()
+				}).catch(err => deferred.reject(err))
 			}
 		}
 	)
@@ -99,14 +121,15 @@ function saveOnSMSINdb (id_api_call) {
 	const deferred = Q.defer()
 
 	Q.all([
-		db.promise.ips(),
-		db.promise.insignia()
-	]).spread((con_ips, con_insignia) => {
+		db.getConnection(db.promise.ips),
+		db.getConnection(db.promise.sms)
+	]).spread((con_ips, con_sms) => {
+		const con = { ips: con_ips, sms: con.sms }
 
 		// Obtener los pagos con id_api_call especifico y metodos de pago
 		Q.all([
-			getIpsData(con_ips, id_api_call),
-			getMetodosDePago(con_ips)
+			getIpsData(con.ips, id_api_call),
+			getMetodosDePago(con.ips)
 		]).spread((data, metodos) => {
 
 			let products = []
@@ -121,7 +144,7 @@ function saveOnSMSINdb (id_api_call) {
 				})
 
 				products.push(new Promise((resolve, reject) => {
-					con_insignia.query(
+					con.sms.query(
 						`INSERT INTO smsin (id_sms, origen, sc, contenido, estado, data_arrive, time_arrive, desp_op, id_producto) VALUES (?, ?, ?, ?, ?, CURDATE(), CURTIME(), ?, ?)`,
 						[
 							o.sms_id,
@@ -147,8 +170,8 @@ function saveOnSMSINdb (id_api_call) {
 		}).catch(err => deferred.reject(err)).done()
 
 		// Cerrar conexiones
-		con_insignia.release()
-		con_ips.release()
+		con.sms.release()
+		con.ips.release()
 
 	}).catch(err => deferred.reject(err)).done()
 
@@ -163,28 +186,17 @@ module.exports = webhook => {
 	}
 	let id_api_call = webhook.data.object.source.id
 
-	db.promise.ips().then(con => {
-
-		let data = {
-			id_api_call,
-			subject: 'Nuevo pago procesado satisfactoriamente',
-			template: 'payment_succeeded',
-			attachments: [{
-				filename: 'logo.png',
-				path: path.resolve('public/images/logo.png'),
-				cid: 'logoinsignia'
-			}]
-		}
+	db.getConnection(db.promise.ips).then(con => {
 
 		/*
 		 * Guardar pago en SMSIN
 		 * Hacer update a pago en ips
-		 * Enviar notificacion por email
+		 * Enviar notificacion por email y sms
 		 */
 		Q.all([
 			updatePaymentToCompleted(con, payment, id_api_call),
 			saveOnSMSINdb(id_api_call),
-			sendEmailNotification(con, data)
+			sendNotification(con, id_api_call)
 		]).spread((updateResultIps, insertResultInsignia, sendEmailNotificationResult) => {
 
 			console.log('PAGO ACTUALIZADO EN IPS', updateResultIps)
@@ -195,6 +207,5 @@ module.exports = webhook => {
 
 		// Cerrar conexion con IPS DB
 		con.release()
-
 	}).catch(err => console.log(err))
 }
