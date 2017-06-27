@@ -75,7 +75,7 @@ function newSms (data) {
 		}
 
 		for (let operadora of operadoras) {
-			let prefijo = phone.substr(0,3)
+			let prefijo = mensaje.phone.substr(0,3)
 
 			if (operadora.prefijo === prefijo) {
 				mensaje.operadoraId = operadora.id
