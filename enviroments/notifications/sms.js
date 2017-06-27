@@ -10,6 +10,9 @@ const status      = 0
 function insertNewSmsOnDb (con, data) {
 	const deferred = Q.defer()
 
+	console.log('DATA INSERT NEW SMS', data)
+	console.log('DATA DESTINATARIO', data.destinatario)
+
 	db.connection.insignia_alarmas.query(
 		{
 			sql: `INSERT INTO outgoing (id, destinatario, mensaje, fecha_in, hora_in, tipo_evento, cliente, operadora, status) VALUES (DEFAULT, ?, ?, CURDATE(), CURTIME(), ?, ?, ?, ?)`,
