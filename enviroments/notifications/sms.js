@@ -7,7 +7,7 @@ const cliente     = 1
 const tipo_evento = 2909
 const status      = 0
 
-function insertNewSmsOnDb (con, data) {
+function insertNewSmsOnDb (data) {
 	const deferred = Q.defer()
 
 	console.log('MENSAJE DESPUES', data)

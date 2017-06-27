@@ -121,8 +121,8 @@ function saveOnSMSINdb (id_api_call) {
 	const deferred = Q.defer()
 
 	Q.all([
-		db.getConnection(db.promise.ips),
-		db.getConnection(db.promise.sms)
+		db.getConnection(db.connection.ips),
+		db.getConnection(db.connection.sms)
 	]).spread((con_ips, con_sms) => {
 		const con = { ips: con_ips, sms: con.sms }
 
@@ -186,7 +186,7 @@ module.exports = webhook => {
 	}
 	let id_api_call = webhook.data.object.source.id
 
-	db.getConnection(db.promise.ips).then(con => {
+	db.getConnection(db.connection.ips).then(con => {
 
 		/*
 		 * Guardar pago en SMSIN
