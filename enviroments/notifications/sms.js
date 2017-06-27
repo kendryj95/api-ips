@@ -11,7 +11,6 @@ function insertNewSmsOnDb (con, data) {
 	const deferred = Q.defer()
 
 	console.log('DATA INSERT NEW SMS', data)
-	console.log('DATA DESTINATARIO', data.destinatario)
 
 	db.connection.insignia_alarmas.query(
 		{
@@ -70,11 +69,9 @@ function newSms (data) {
 	console.log('DATA', data)
 
 	getOperadoras().then(operadoras => {
-		let phone        = getTelephoneInfo(data.phone).phone
-		console.log('LET PHONE', phone)
-		let destinatario = String(phone).substr(3)
-		console.log('DESTINATARIO', destinatario)
-		let operadora_id = ''
+		const phone        = getTelephoneInfo(data.phone).phone
+		const destinatario = String(phone).substr(3)
+		var   operadora_id = ''
 
 		for (let operadora of operadoras) {
 			let prefijo = phone.substr(0,3)
