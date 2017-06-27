@@ -50,12 +50,7 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 		updateUpdatePayment(id_api_call, status, estado_compra)
 	]).spread((client, resultUpdate) => {
 		console.log('RESULTADO DEL UPDATE', resultUpdate)
-		deferred.resolve({
-			client: {
-				email: results[0].email,
-				phone: results[0].phone
-			}
-		})
+		deferred.resolve({ client })
 	}).catch(err => deferred.reject(err))
 
 	Promise.resolve().then(() => {
