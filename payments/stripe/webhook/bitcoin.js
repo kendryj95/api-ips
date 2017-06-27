@@ -16,7 +16,7 @@ function getClientDataFromPayment (id_api_call) {
 			],
 			(err, result) => {
 				if (err) reject(err)
-				else resolve(result)
+				else resolve({ email: result[0].email, phone: result[0].phone })
 			}
 		)
 	})
