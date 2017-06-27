@@ -69,7 +69,7 @@ function newSms (data) {
 	getOperadoras().then(operadoras => {
 		var mensaje = {
 			phone        : getTelephoneInfo(data.phone).phone,
-			destinatario : String(phone).substr(3),
+			destinatario : String(getTelephoneInfo(data.phone).phone).substr(3),
 			operadoraId  : '',
 			text         : data.message
 		}
