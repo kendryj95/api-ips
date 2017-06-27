@@ -10,8 +10,6 @@ const status      = 0
 function insertNewSmsOnDb (data) {
 	const deferred = Q.defer()
 
-	console.log('MENSAJE DESPUES', data)
-
 	db.connection.insignia_alarmas.query(
 		{
 			sql: `INSERT INTO outgoing (id, destinatario, mensaje, fecha_in, hora_in, tipo_evento, cliente, operadora, status) VALUES (DEFAULT, ?, ?, CURDATE(), CURTIME(), ?, ?, ?, ?)`,
@@ -85,7 +83,6 @@ function newSms (data) {
 		}
 
 		if (mensaje.operadoraId && mensaje.operadoraId !== -99) {
-			console.log('MENSAJE ANTES', mensaje)
 			// Insertar en tabla outgoing dentro db insignia_alarmas
 			insertNewSmsOnDb(mensaje).then(result => {
 				deferred.resolve('Se ha procesado exitosamente el sms')

@@ -87,7 +87,7 @@ function handleChargeable (webhook, url) {
 
 		const sms = {
 			phone: result.client.phone,
-			message: `Nuevo pago con bitcoins creado, porfavor conforme su pago siguiendo los pasos enviados a su direccion de correo electrónico`
+			message: `Nuevo pago con bitcoin id ${id_api_call} creado, porfavor conforme su pago siguiendo los pasos enviados a su dirección de correo electrónico`
 		}
 
 		notification.new(email, sms).then(response => {
@@ -104,7 +104,6 @@ function handleCanceled (webhook) {
 				estado_compra = 'error_pago'
 
 	handleDB(id_api_call, status, estado_compra).then(result => {
-
 		const email = {
 			to: result.client.email,
 			subject: 'Tiempo para conformar pago expirado',
@@ -122,10 +121,8 @@ function handleCanceled (webhook) {
 
 		const sms = {
 			phone: result.client.phone,
-			message: `El tiempo para conforma su pago con id ${id_api_call} ha expirado, porfavor intente de nuevo.`
+			message: `El tiempo para conforma su pago con id ${id_api_call} ha expirado, porfavor intente de nuevo`
 		}
-
-		//handleNotificationsByEmail(email).then(r => console.log(r)).catch(err => console.log(err))
 
 		notification.new(email, sms).then(response => {
 			console.log('EMAIL ENVIADO', response.email)

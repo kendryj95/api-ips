@@ -124,7 +124,7 @@ function saveOnSMSINdb (id_api_call) {
 		db.getConnection(db.connection.ips),
 		db.getConnection(db.connection.sms)
 	]).spread((con_ips, con_sms) => {
-		const con = { ips: con_ips, sms: con.sms }
+		const con = { ips: con_ips, sms: con_sms }
 
 		// Obtener los pagos con id_api_call especifico y metodos de pago
 		Q.all([
