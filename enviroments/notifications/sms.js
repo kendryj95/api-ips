@@ -68,7 +68,9 @@ function newSms (data) {
 
 	getOperadoras().then(operadoras => {
 		let phone        = getTelephoneInfo(data.phone).phone
+		console.log('LET PHONE', phone)
 		let destinatario = String(phone).substr(3)
+		console.log('DESTINATARIO', destinatario)
 		let operadora_id = ''
 
 		for (let operadora of operadoras) {

@@ -51,7 +51,6 @@ function handleDB (id_api_call, status, estado_compra = 'esperando_pago') {
 		updateUpdatePayment(id_api_call, status, estado_compra)
 	]).spread((client, resultUpdate) => {
 		console.log('RESULTADO DEL UPDATE', resultUpdate)
-		console.log({client})
 		deferred.resolve({ client })
 	}).catch(err => deferred.reject(err))
 
@@ -69,7 +68,6 @@ function handleChargeable (webhook, url) {
 				id_api_call = webhook.data.object.id
 
 	handleDB(id_api_call, status).then(result => {
-
 		const email = {
 			to: result.client.email,
 			subject: 'Nuevo pago con bitcoin',
