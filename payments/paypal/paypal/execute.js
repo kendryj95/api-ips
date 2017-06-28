@@ -1,4 +1,4 @@
-const paypal       = require('../../../config/setup')
+const paypal       = require('../../../config/setup').paypal
 const querystring  = require('querystring')
 const Q            = require('q')
 const db           = require('../../../config/db')

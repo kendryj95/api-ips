@@ -1,11 +1,11 @@
-const express             = require('express')
-const router              = express.Router()
-const paypal              = require('paypal-rest-sdk')
-const querystring         = require('querystring')
+const express                      = require('express')
+const router                       = express.Router()
+const paypal                       = require('paypal-rest-sdk')
+const querystring                  = require('querystring')
 
-const sales               = require('./sales')
-const result              = require('./result')
-const validatePhoneNumber = require('../middlewares/validatePhoneNumber')
+const sales                        = require('./sales')
+const result                       = require('./result')
+const validatePhoneNumber          = require('../middlewares/validatePhoneNumber')
 
 router.post('/token', require('./tokens').new)
 
@@ -29,6 +29,6 @@ router.get('/sales/success', result.showSuccess)
 
 router.post('/stripe/webhook', require('../payments/stripe/webhook/'))
 
-router.all('/paypal/webhook', require('../payments/paypal/webhook/'))
+router.post('/paypal/webhook', require('../payments/paypal/webhook/'))
 
 module.exports = router

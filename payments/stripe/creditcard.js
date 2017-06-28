@@ -1,4 +1,4 @@
-const stripe      = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
+const stripe      = require('stripe')(require('../../config/setup').stripe)
 const Q           = require('q')
 const querystring = require('querystring')
 const db          = require('../../config/db')

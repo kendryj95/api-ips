@@ -70,7 +70,7 @@ function handleChargeable (webhook, url) {
 	handleDB(id_api_call, status).then(result => {
 		const email = {
 			to: result.client.email,
-			subject: 'Nuevo pago con bitcoin',
+			subject: `Nuevo pago con bitcoin (${id_api_call})`,
 			template: 'stripe/bitcoin/chargeable',
 			context: {
 				email: result.client.email,

@@ -64,32 +64,38 @@ function newSms (data) {
 	if (typeof data !== 'object' && !data && !data.phone && data.message)
 		return deferred.reject('Data del mensaje es inexistente o incompleta')
 
-	getOperadoras().then(operadoras => {
-		var mensaje = {
-			phone        : getTelephoneInfo(data.phone).phone,
-			destinatario : String(getTelephoneInfo(data.phone).phone).substr(3),
-			operadoraId  : '',
-			text         : data.message
-		}
+	const phoneInfo = getTelephoneInfo(data.phone)
 
-		for (let operadora of operadoras) {
-			let prefijo = mensaje.phone.substr(0,3)
+	if (phoneInfo.country === 'VE') {
+		getOperadoras().then(operadoras => {
+			var mensaje = {
+				phone        : phoneInfo.phone,
+				destinatario : String(phoneInfo.phone).substr(3),
+				operadoraId  : '',
+				text         : data.message
+			}
 
-			if (operadora.prefijo === prefijo) {
-				mensaje.operadoraId = operadora.id
-				break
-			} else
-				mensaje.operadoraId = -99
-		}
+			for (let operadora of operadoras) {
+				let prefijo = mensaje.phone.substr(0,3)
 
-		if (mensaje.operadoraId && mensaje.operadoraId !== -99) {
-			// Insertar en tabla outgoing dentro db insignia_alarmas
-			insertNewSmsOnDb(mensaje).then(result => {
-				deferred.resolve('Se ha procesado exitosamente el sms')
-			}).catch(err => deferred.reject(err))
+				if (operadora.prefijo === prefijo) {
+					mensaje.operadoraId = operadora.id
+					break
+				} else
+					mensaje.operadoraId = -99
+			}
 
-		} else deferred.reject({ error: 'El prefijo no pertenece a una operadora valida' })
-	})
+			if (mensaje.operadoraId && mensaje.operadoraId !== -99) {
+				// Insertar en tabla outgoing dentro db insignia_alarmas
+				insertNewSmsOnDb(mensaje).then(result => {
+					deferred.resolve(result)
+				}).catch(err => deferred.reject(err))
+
+			} else deferred.reject({ error: 'El prefijo no pertenece a una operadora valida' })
+		})
+	} else {
+		console.log('NUMERO DE TELEFONO INTERNACIONAL', phoneInfo)
+	}
 
 	return deferred.promise
 }

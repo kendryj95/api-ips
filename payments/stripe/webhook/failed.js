@@ -1,7 +1,7 @@
-const Q = require('q')
-const db = require('../../../config/db')
+const Q     = require('q')
+const db    = require('../../../config/db')
 const email = require('../../../enviroments/email')
-const path = require('path')
+const path  = require('path')
 
 function updatePaymentStatus (con, payment, id_api_call) {
 	const deferred = Q.defer()

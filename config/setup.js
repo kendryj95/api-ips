@@ -1,19 +1,13 @@
 const paypal = require('paypal-rest-sdk')
+const stripe = 'sk_test_Hk47JU23LNp1hB0UtgCnGMNH'
 
 // paypal@insignia.com.ve
 // IMC1205!
 
 paypal.configure({
-	'mode': 'sandbox',
-	'client_id': 'AYdVxAu3gwaTAcv4qU07-KjHNGS8EnwUEJL0IUxZFz1KWmKZMLeuppa18ddkfq7ZMgigwqVm4_BJOnM5',
-	'client_secret': 'ENMzt1C9Qhb7id1w25LFmNyAXluIphATeXSuNRJCtV5aiHa4-KQ_IFPNE3RmeFgTe3Z7B_F0QkI1ECwP'
+	'mode'          : 'sandbox',
+	'client_id'     : 'AYdVxAu3gwaTAcv4qU07-KjHNGS8EnwUEJL0IUxZFz1KWmKZMLeuppa18ddkfq7ZMgigwqVm4_BJOnM5',
+	'client_secret' : 'ENg97Je9d0uQwaqHfnppKIla4-jIpYTgXqL29ZzmhVmU-k0loX3ewsQ7d6a5_VO-Do9sWGeMeKNx1V8J'
 })
 
-/*
-paypal.configure({
-  'mode': 'sandbox', //sandbox or live
-  'client_id': 'ASEtQs5zOnzaFM3jOo_cYlm7zD0It4D2x0K3NFUS0zgMaONtvt0amtSNf3l5thiGa-8NW7So7W1SbBJ6',
-  'client_secret': 'ELJEkIvfiAorknhuzqsrsCwchUxLNUKdyW_F2yp2LcFfw5OET2CKkz455cZleC3SBfjtfDoqGJLqqF_x'
-})
-*/
-module.exports = paypal
+module.exports = { paypal, stripe }

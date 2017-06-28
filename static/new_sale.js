@@ -60,8 +60,8 @@ module.exports = (req, res) => {
 				error_code: 50
 			}
 		})
-	}	
-
+	}
+	
 	if (purchase && redirect_url, token) {
 		// Obtener metodos de pago desde db
 		getMetodosDePagos().then(metodos => {

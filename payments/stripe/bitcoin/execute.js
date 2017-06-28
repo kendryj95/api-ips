@@ -1,15 +1,17 @@
-const stripe      = require('stripe')('sk_test_Hk47JU23LNp1hB0UtgCnGMNH')
-const Q           = require('q')
-const querystring = require('querystring')
-const db          = require('../../../config/db')
+const stripe          = require('stripe')(require('../../../config/setup').stripe)
+const Q               = require('q')
+const querystring     = require('querystring')
+const db              = require('../../../config/db')
+const idStripeBitcoin = 6
 
 function getPaypementsRecord (con, id_api_call) {
 	return new Promise((resolve, reject) => {
 		con.query(
-			`SELECT * FROM pagos p WHERE p.id_api_call = ?`,
-			[ id_api_call ],
+			`SELECT * FROM pagos p WHERE p.id_api_call = ? AND id_metodo_pago = ?`,
+			[ id_api_call, idStripeBitcoin ],
 			(err, result) => {
-				err ? reject(err) : resolve(result)
+				if (err) reject(err)
+				else result.length > 0 ? resolve(result) : reject({ error: 'No se han encontrado resultados en la base de datos.' })
 			}
 		)
 	})
