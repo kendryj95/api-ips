@@ -104,7 +104,22 @@ module.exports = (req, res) => {
 			})
 		}).catch(err => {
 			console.error('ERROR', err)
-			err instanceof Error ? res.status(400).send("General error") : res.status(200).json({ "code": 1000, "message": err })
+			if (err instanceof Error) {
+				switch (err.code) {
+					case 'ETIMEDOUT':
+						console.log('TIMEOUT', err)
+						res.redirect(request.get('referer'))
+					break
+					default:
+						res.status(400).json({ 'code': 1000, 'message': err })
+					break
+				}
+			} else {
+				console.log('ERROR DESCONOCIDO', err)
+				setTimeout(() => {
+					res.redirect(request.get('referer'))
+				}, 15)
+			}
 		})
 	}
 }

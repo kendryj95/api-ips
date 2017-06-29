@@ -3,44 +3,19 @@ const Q              = require('q')
 const db             = require('../../config/db')
 
 // Enviroment const
-const cliente     = 1
-const tipo_evento = 2909
-const status      = 0
-
-function insertNewSmsOnDb (data) {
-	const deferred = Q.defer()
-
-	db.connection.insignia_alarmas.query(
-		{
-			sql: `INSERT INTO outgoing (id, destinatario, mensaje, fecha_in, hora_in, tipo_evento, cliente, operadora, status) VALUES (DEFAULT, ?, ?, CURDATE(), CURTIME(), ?, ?, ?, ?)`,
-			timeout: 6000
-		},
-		[
-			data.destinatario,
-			data.text,
-			tipo_evento,
-			cliente,
-			data.operadoraId,
-			status
-		],
-		(err, result) => {
-			err ? deferred.reject(err) : deferred.resolve(result)
-		}
-	)
-
-	return deferred.promise
-}
+const status           = 2
+const application_name = 'IPS_NOTIFICACIONES'
 
 function getTelephoneInfo (number) {
 	return libphonenumber.parse(number)
 }
 
-function getOperadoras () {
+function getOperadoras (con) {
 	const deferred = Q.defer()
 
-	db.connection.insignia_masivo_premium.query(
+	con.query(
 		{
-			sql: `SELECT id_operadora_bcp AS id, prefijo, alfanumerico FROM operadoras_relacion`,
+			sql: `SELECT id_operadora_bcp AS id, prefijo FROM operadoras_relacion WHERE alfanumerico = 0`,
 			timeout: 6000
 		},
 		(err, result) => {
@@ -49,6 +24,69 @@ function getOperadoras () {
 	)
 
 	return deferred.promise
+}
+
+function newVeSMS (con, data) {
+	return new Promise((resolve, reject) => {
+		con.query(
+			{
+				sql     : `INSERT INTO outgoing_premium (destinatario, mensaje, fecha_in, hora_in, tipo_evento, cliente, operadora, status, id_promo) VALUES (?, ?, CURDATE(), CURTIME(), ?, ?, ?, ?, ?)`,
+				timeout : 60000
+			},
+			[
+				data.destinatario,
+				data.message,
+				data.id_evento,
+				data.id_cliente,
+				data.operadoraId,
+				status,
+				data.id_promo
+			],
+			(err, result) => {
+				if (err) reject(err)
+				else resolve(result)
+			}
+		)
+	})
+}
+
+function updatePromocionesPremium (con, id_promo) {
+	return new Promise((resolve, reject) => {
+		con.query(
+			{
+				sql     : `UPDATE promociones_premium SET estado = ? WHERE id_promo = ?`,
+				timeout : 60000
+			},
+			[
+				2,
+				id_promo
+			],
+			(err, result) => {
+				if (err) reject(err)
+				else if (result.affectedRows < 1) reject({ error: 'No se encontraron promociones que modificar.' })
+				else resolve(result)
+			}
+		)
+	})
+}
+
+function getPromocionActiva (con) {
+	return new Promise((resolve, reject) => {
+		con.query(
+			{
+				sql     : `SELECT id_promo AS promo, id_cliente AS cliente, id_evento AS evento FROM notificaciones_promo np WHERE np.valor_aplicacion = ?`,
+				timeout : 60000
+			},
+			[
+				application_name
+			],
+			(err, result) => {
+				if (err) reject(err)
+				else if (result.length < 1) reject({ err: 'No se ha encontrado promocion activa relacionada con la aplicacion.' })
+				else resolve(result[0])
+			}
+		)
+	})
 }
 
 function text_truncate (str, length, ending) {
@@ -67,32 +105,43 @@ function newSms (data) {
 	const phoneInfo = getTelephoneInfo(data.phone)
 
 	if (phoneInfo.country === 'VE') {
-		getOperadoras().then(operadoras => {
-			var mensaje = {
-				phone        : phoneInfo.phone,
-				destinatario : String(phoneInfo.phone).substr(3),
-				operadoraId  : '',
-				text         : data.message
-			}
+		db.getConnection(db.connection.insignia_masivo_premium).then(con => {
+			getOperadoras(con).then(operadoras => {
+				let mensaje = {
+					phone        : phoneInfo.phone,
+					destinatario : String(phoneInfo.phone).substr(3),
+					operadoraId  : '',
+					message      : data.message
+				}
 
-			for (let operadora of operadoras) {
-				let prefijo = mensaje.phone.substr(0,3)
+				for (let operadora of operadoras) {
+					let prefijo = mensaje.phone.substr(0,3)
 
-				if (operadora.prefijo === prefijo) {
-					mensaje.operadoraId = operadora.id
-					break
-				} else
-					mensaje.operadoraId = -99
-			}
+					if (operadora.prefijo === prefijo) {
+						mensaje.operadoraId = operadora.id
+						break
+					} else
+						mensaje.operadoraId = -99
+				}
 
-			if (mensaje.operadoraId && mensaje.operadoraId !== -99) {
-				// Insertar en tabla outgoing dentro db insignia_alarmas
-				insertNewSmsOnDb(mensaje).then(result => {
-					deferred.resolve(result)
-				}).catch(err => deferred.reject(err))
+				if (mensaje.operadoraId && mensaje.operadoraId !== -99) {
+					getPromocionActiva(con).then(info => {
+						mensaje.id_evento  = info.evento
+						mensaje.id_cliente = info.cliente
+						mensaje.id_promo   = info.promo
 
-			} else deferred.reject({ error: 'El prefijo no pertenece a una operadora valida' })
-		})
+						Q.all([
+							newVeSMS(con, mensaje),
+							updatePromocionesPremium(con, mensaje.id_promo)
+						]).spread((response, resultUpdate) => {
+							con.release()
+							deferred.resolve(response)
+						}).catch(err => deferred.reject(err))
+
+					}).catch(err => deferred.reject(err))
+				} else deferred.reject({ error: 'El prefijo no pertenece a una operadora valida' })
+			}).catch(err => deferred.reject(err))
+		}).catch(err => deferred.reject(err))
 	} else {
 		console.log('NUMERO DE TELEFONO INTERNACIONAL', phoneInfo)
 	}
