@@ -31,4 +31,27 @@ router.post('/stripe/webhook', require('../payments/stripe/webhook/'))
 
 router.post('/paypal/webhook', require('../payments/paypal/webhook/'))
 
+router.get('/enviroment', (re, res) => {
+	const enviroment = process.env.enviroment
+
+	if (enviroment) {
+		var env = null
+
+		switch (enviroment) {
+			case 'PRODUCTION':
+				env = { env: enviroment }
+			break
+			case 'DEVELOPMENT':
+				env = { env: enviroment }
+			break
+		}
+
+		res.status(200).json(env)
+	} else {
+		res.status(500).json({
+			error: 'No se ha establecido un entorno de ejecucion (PRODUCTION o DEVELOPMENT)'
+		})
+	}
+})
+
 module.exports = router
