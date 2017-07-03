@@ -6,7 +6,7 @@ module.exports = {
 		if (password && data_cliente) {
 			
 
-			if (password == require('../config/secret').new_tokens) {
+			if (password == require('./config/secret').new_tokens) {
 
 				function expiresIn(numDays) {
 					let dateObj = new Date()
@@ -21,7 +21,7 @@ module.exports = {
 						origen: data_cliente.sc,
 						sc: data_cliente.sc
 					}
-				}, require('../config/secret').main)
+				}, require('./config/secret').main)
 
 				res.status(201).json({
 					"status": 201,
