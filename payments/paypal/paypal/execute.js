@@ -111,6 +111,92 @@ function updateIntoPagoIps (con, payment, data) {
 	return deferred.promise
 }
 
+function getIdusuarioConsumidor(connection, email_consumidor){
+	const deferred = Q.defer()
+
+	connection.query(
+			{
+				sql: `SELECT u.idusuario_ips FROM insignia_payments_solutions.usuario_ips u INNER JOIN insignia_payments_solutions.pagos p ON p.consumidor_email = u.email WHERE p.consumidor_email = '${email_consumidor}' LIMIT 1`,
+				timeout: 60000
+			},
+			(error, results, fields) => {
+				if (error) {
+					console.log('Error en la consulta a pagos para el idusuario_ips: ', error)
+					deferred.reject({
+						title: 'ERROR',
+						error: {
+							'status': 500,
+							'details': [
+							{
+								issue: 'Error para obtener la consulta en base de datos.'
+							}
+							],
+							'error_code': 28,
+							'error': error
+						}
+					})
+				} else deferred.resolve(results)
+			}
+		)
+
+	return deferred.promise
+
+}
+
+function insertOnNotifications(connection, payment, data){
+	const deferred = Q.defer()
+	let estadoNotification = (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') ? 2 : 5;
+	let asuntoNotification = (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') ? 'Su compra fue aprobada satisfactoriamente' : 'Su compra ha sido rechazada';
+
+	Q.all([
+		db.getConnection(db.connection.ips)
+	]).spread( con_ips => {
+		const connection = {ips: con_ips}
+
+		getIdusuarioConsumidor(connection.ips, data.email).then(idUsuarioIps => {
+				connection.ips.query(
+					{
+						sql: `INSERT INTO insignia_payments_solutions.notificaciones (id_compra,idusuario_ips, asunto, mensaje, fecha, hora, estado) VALUES (?,?,?,?, CURDATE(), CURTIME(), ?)`,
+						timeout: 60000
+					},
+					[
+						payment.transactions[0].related_resources[0].sale.id,
+						idUsuarioIps[0].idusuario_ips,
+						asuntoNotification,
+						'Haga click en el ticket para disfrutar de su contenido',
+						estadoNotification
+					],
+					(error, result) => {
+						if (error) {
+							console.log('Error al insertar en notificaciones: ', error)
+							deferred.reject({
+								title: 'ERROR',
+								error: {
+									'status': 500,
+									'details': [
+										{
+											issue: 'Error al insertar en la base de datos ips.'
+										}
+									],
+									'error_code': 29,
+									'error': error
+								}
+							})
+						} else deferred.resolve(result)
+					}
+				)
+			}).catch(err => {
+				console.log(err)
+				deferred.reject(err)
+			})
+	}).catch(err => {
+		console.log(err)
+		deferred.reject(err)
+})
+
+	return deferred.promise
+}
+
 function saveOnDatabase (payment, paymentId, base_url) {
 	const deferred = Q.defer()
 
@@ -124,6 +210,7 @@ function saveOnDatabase (payment, paymentId, base_url) {
 
 			let updatePagosOnIPS = []
 			let insertSmsinOnSMS = []
+			let insertIntoNotifications = []
 
 			for (let pago of pagos) {
 				const data = {
@@ -134,7 +221,8 @@ function saveOnDatabase (payment, paymentId, base_url) {
 						sc: pago.sms_sc,
 						origen: pago.sms_sc,
 						contenido: pago.sms_contenido
-					}
+					},
+					email: pago.consumidor_email
 				}
 
 				// UPDATE EN BASE DE DATOS INSIGNIA_PAYMENTS_SOLUTIONS
@@ -142,11 +230,14 @@ function saveOnDatabase (payment, paymentId, base_url) {
 
 				// INSERT EN BASE DE DATOS SMSIN
 				insertSmsinOnSMS.push(insertIntoSmsinInsignia(connection.sms, data))
+
+				insertIntoNotifications.push(insertOnNotifications(connection.ips, payment, data))
 			}
 
 			Q.all([
 				Q.all(updatePagosOnIPS),
-				Q.all(insertSmsinOnSMS)
+				Q.all(insertSmsinOnSMS),
+				Q.all(insertIntoNotifications)
 			]).spread((ips, sms) => {
 					
 				deferred.resolve({
