@@ -81,6 +81,7 @@ function showCancelPage (req, res) {
 
 	db_record(payment).then(result => {
 		console.log('RESULTADO DE ACTUALIZACION DE BASE DE DATOS', result)
+		req.ips_session.reset()
 		res.render('cancel', {
 			title: 'Solicitud de pago fallida',
 			token: purchase.token,

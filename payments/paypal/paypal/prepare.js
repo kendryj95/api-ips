@@ -50,7 +50,7 @@ function createPaypalPayment (data) {
 			deferred.reject({
 				title: 'ERROR',
 				error: {
-					'status': error.httpStatusCode,
+					'status': err.httpStatusCode,
 					'details': err.response.details,
 					'error_code': 22,
 					'error': err
@@ -198,7 +198,8 @@ module.exports = function(req, res, next) {
 	if (req.body.token && req.body.purchase && req.body.redirect_url) {
 		const purchase     = JSON.parse(req.body.purchase)
 		const redirect_url = req.body.redirect_url
-		const base_url     = `${req.protocol}://${req.get('host')}`
+		//const base_url = `${req.protocol}://${req.get('x-forwarded-host')}` // base url cuando la app está alojada a un servidor con su DNS (o dominio), de lo contrario usar la de abajo y comentar ésta.
+		const base_url = `${req.protocol}://${req.get('host')}`
 
 		// Información de contacto
 		const client = {

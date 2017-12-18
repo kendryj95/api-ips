@@ -11,12 +11,14 @@
   "author": "Insigina Mobile Communications, C.A.",
   "license": "UNLICENSED",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "body-parser": "^1.17.1",
     "client-sessions": "^0.8.0",
     "cors": "^2.8.3",
     "currency-formatter": "^1.2.1",
     "express": "^4.15.2",
     "express-handlebars": "^3.0.0",
+    "foundation": "^4.2.1-1",
     "foundation-sites": "^6.3.1",
     "jquery": "^3.2.1",
     "jwt-simple": "^0.5.1",
@@ -33,7 +35,7 @@
     "paypal-rest-sdk": "^1.7.1",
     "pikaday": "^1.5.1",
     "q": "^1.5.0",
-    "stripe": "^4.22.0",
+    "stripe": "^4.25.0",
     "what-input": "^4.1.3"
   }
 }

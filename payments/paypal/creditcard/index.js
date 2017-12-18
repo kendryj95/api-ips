@@ -3,6 +3,7 @@ const Q           = require('q')
 const querystring = require('querystring')
 const db          = require('../../../config/db')
 const tokenHelper = require('../../../enviroments/token')
+const formatter = require('../../../enviroments/formatter')
 
 function processPay (data, token) {
 	const deferred = Q.defer()
@@ -42,16 +43,23 @@ function processPay (data, token) {
 		'transactions': [
 			{
 				'amount': {
-					'total': data.purchase.total,
+					'total': formatter.numberFormat(data.purchase.total, 2),
 					'currency': data.purchase.currency
 				},
-				'description': 'IPS_Purchase_TOTAL:'+data.purchase.total+'_FROM:'+result_url+'_PAY_METHOD:PAYPAL_CREDITCARD'
+				'description': 'IPS_Purchase_TOTAL:'+formatter.numberFormat(data.purchase.total, 2)+'_FROM:'+result_url+'_PAY_METHOD:PAYPAL_CREDITCARD'
 			}
 		]
 	}
-					
+	
+	console.log("PAYMENT ======>", create_payment)
 	paypal.payment.create(create_payment, (err, payment) => {
+		console.log("CREATE PAYMENT ========> ", create_payment)
+		console.log("####################################################")
 		if (err) {
+			console.log("OCURRIÓ UN ERROR =======> AL MOMENTO DE CONECTARSE A PAYPAL Y PAGAR")
+			console.log("===============================================")
+			console.log("Tipo de error:",err)
+			console.log("===============================================")
 			deferred.reject({
 				title: 'Ha ocurrido un error al procesar su pago',
 				error: {
@@ -62,6 +70,8 @@ function processPay (data, token) {
 				}
 			})
 		} else {
+
+			let connection = {}
 
 			getDbConnection().then(r => {
 				let ipsSaves      = []
@@ -78,18 +88,20 @@ function processPay (data, token) {
 						estado: 1,
 						desp_op: 'PAYPAL_CREDITCARD'
 					}
-
+					connection = {ips: r.con.ips}
 					ipsSaves.push(saveOnIPSDb(r.con.ips, payment, data, o, sms))
 					insigniaSaves.push(saveOnInsigniaDb(r.con.smsin, sms, o))
 				})
 
 				Q.all([
 					Q.all(ipsSaves),
-					Q.all(insigniaSaves)
-				]).spread((ips, smsin) => {
+					Q.all(insigniaSaves),
+					Q.all(insertOnNotifications(connection.ips, payment, data.client.email))
+				]).spread((ips, smsin, notifications) => {
 
 					console.log('IPS INSERT CREDITCARD PAYPAL', ips)
 					console.log('SMSIN INSERT CREDITCARD PAYPAL', smsin)
+					console.log('NOTIFICATIONS INSERT CREDITCARD PAYPAL', notifications)
 
 					// Show success page
 					let params = querystring.stringify({ 
@@ -155,6 +167,92 @@ function saveOnInsigniaDb (con, sms, o) {
 	return deferred.promise
 }
 
+function insertOnNotifications(connection, payment, email){
+	const deferred = Q.defer()
+	let estadoNotification = (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') ? 2 : 5;
+	let asuntoNotification = (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') ? 'Su compra fue aprobada satisfactoriamente' : 'Su compra ha sido rechazada';
+
+	Q.all([
+		db.getConnection(db.connection.ips)
+	]).spread( con_ips => {
+		const connection = {ips: con_ips}
+
+		getIdusuarioConsumidor(connection.ips, email).then(idUsuarioIps => {
+				connection.ips.query(
+					{
+						sql: `INSERT INTO insignia_payments_solutions.notificaciones (id_compra,idusuario_ips, asunto, mensaje, fecha, hora, estado) VALUES (?,?,?,?, CURDATE(), CURTIME(), ?)`,
+						timeout: 60000
+					},
+					[
+						payment.transactions[0].related_resources[0].sale.id,
+						idUsuarioIps[0].idusuario_ips,
+						asuntoNotification,
+						'Haga click en el ticket para disfrutar de su contenido',
+						estadoNotification
+					],
+					(error, result) => {
+						if (error) {
+							console.log('Error al insertar en notificaciones: ', error)
+							deferred.reject({
+								title: 'ERROR',
+								error: {
+									'status': 500,
+									'details': [
+										{
+											issue: 'Error al insertar en la base de datos ips.'
+										}
+									],
+									'error_code': 29,
+									'error': error
+								}
+							})
+						} else deferred.resolve(result)
+					}
+				)
+			}).catch(err => {
+				console.log(err)
+				deferred.reject(err)
+			})
+	}).catch(err => {
+		console.log(err)
+		deferred.reject(err)
+})
+
+	return deferred.promise
+}
+
+function getIdusuarioConsumidor(connection, email_consumidor){
+	const deferred = Q.defer()
+
+	connection.query(
+			{
+				sql: `SELECT u.idusuario_ips FROM insignia_payments_solutions.usuario_ips u INNER JOIN insignia_payments_solutions.pagos p ON p.consumidor_email = u.email WHERE p.consumidor_email = '${email_consumidor}' LIMIT 1`,
+				timeout: 60000
+			},
+			(error, results, fields) => {
+				if (error) {
+					console.log('Error en la consulta a pagos para el idusuario_ips: ', error)
+					deferred.reject({
+						title: 'ERROR',
+						error: {
+							'status': 500,
+							'details': [
+							{
+								issue: 'Error para obtener la consulta en base de datos.'
+							}
+							],
+							'error_code': 28,
+							'error': error
+						}
+					})
+				} else deferred.resolve(results)
+			}
+		)
+
+	return deferred.promise
+
+}
+
 function saveOnIPSDb (con, payment, data, o, sms) {
 	const deferred = Q.defer()
 
@@ -217,6 +315,7 @@ function getDbConnection () {
 }
 
 module.exports = (req, res) => {
+
 	const base_url = `${req.protocol}://${req.get('host')}`
 
 	if (req.body && req.body.purchase && req.body.redirect_url) {
@@ -261,25 +360,39 @@ module.exports = (req, res) => {
 				}
 			})
 		} else {
+			console.log("DATOS DE CREDITCARD:", data)
 
+			console.log("Va a ejecutar la promesa processPay")
 			processPay(data, token).then(data => {
 				res.redirect(data.approval_url)
 			}).catch(error => {
+				console.log("ERRORRR EN EL PAGO ========>",error)
 				let err = {}
-				err.error.error_code = error.error.error_code
+				//err.error.error_code = error.error.error_code
+				err.error = {error_code: error.error.error_code}
 				err.error.status     = error.error.status
 				err.title            = error.title
-				if (err.error.error.response) {
-					switch (err.error.error.response.name) {
+				if (error.error.error.response) {
+					switch (error.error.error.response.name) {
 						case 'UNKNOWN_ERROR':
 							err.error.details = [
-								{ issue: 'Ha ocurrido un error desconocido, porfavor intente de nuevo.' }
+								{ issue: 'Ha ocurrido un error desconocido, por favor intente de nuevo.' }
+							]
+						break
+						case 'VALIDATION_ERROR':
+							err.error.details = [
+								{ issue: 'Se produjo un error de validación con su solicitud.' }
+							]
+						break
+						case 'UNAUTHORIZED_PAYMENT':
+							err.error.details = [
+								{ issue: 'El instrumento presentado fue rechazado por el procesador o el banco, o no puede ser utilizado para este pago.' }
 							]
 						break
 						default:
 							err = error
 							err.error.details = [
-								{ issue: 'Ha ocurrido un error desconocido, porfavor intente de nuevo.' }
+								{ issue: 'Ha ocurrido un error de conexión, verifique su conexión a internet.' }
 							]
 						break
 					}
