@@ -1,8 +1,10 @@
-const paypal       = require('../../../config/setup').paypal
-const querystring  = require('querystring')
-const Q            = require('q')
-const db           = require('../../../config/db')
-const path         = require('path')
+const paypal       	= require('../../../config/setup').paypal
+const querystring  	= require('querystring')
+const Q            	= require('q')
+const db           	= require('../../../config/db')
+const path         	= require('path')
+const notifications = require('../../../enviroments/notifications/')
+
 
 function getPagos(con, paymentId) {
 	const deferred = Q.defer()
@@ -143,7 +145,11 @@ function getIdusuarioConsumidor(connection, email_consumidor){
 
 }
 
-function insertOnNotifications(connection, payment, data){
+function insertSaldoIPS(connection, stateTransaction, statePay, saldo){
+
+}
+
+function insertOnNotifications(connection, payment, email){
 	const deferred = Q.defer()
 	let estadoNotification = (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') ? 2 : 5;
 	let asuntoNotification = (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') ? 'Su compra fue aprobada satisfactoriamente' : 'Su compra ha sido rechazada';
@@ -153,7 +159,7 @@ function insertOnNotifications(connection, payment, data){
 	]).spread( con_ips => {
 		const connection = {ips: con_ips}
 
-		getIdusuarioConsumidor(connection.ips, data.email).then(idUsuarioIps => {
+		getIdusuarioConsumidor(connection.ips, email).then(idUsuarioIps => {
 				connection.ips.query(
 					{
 						sql: `INSERT INTO insignia_payments_solutions.notificaciones (id_compra,idusuario_ips, asunto, mensaje, fecha, hora, estado) VALUES (?,?,?,?, CURDATE(), CURTIME(), ?)`,
@@ -210,7 +216,6 @@ function saveOnDatabase (payment, paymentId, base_url) {
 
 			let updatePagosOnIPS = []
 			let insertSmsinOnSMS = []
-			let insertIntoNotifications = []
 
 			for (let pago of pagos) {
 				const data = {
@@ -221,8 +226,7 @@ function saveOnDatabase (payment, paymentId, base_url) {
 						sc: pago.sms_sc,
 						origen: pago.sms_sc,
 						contenido: pago.sms_contenido
-					},
-					email: pago.consumidor_email
+					}
 				}
 
 				// UPDATE EN BASE DE DATOS INSIGNIA_PAYMENTS_SOLUTIONS
@@ -231,18 +235,19 @@ function saveOnDatabase (payment, paymentId, base_url) {
 				// INSERT EN BASE DE DATOS SMSIN
 				insertSmsinOnSMS.push(insertIntoSmsinInsignia(connection.sms, data))
 
-				insertIntoNotifications.push(insertOnNotifications(connection.ips, payment, data))
 			}
+
+			console.log("hola ",pagos)
 
 			Q.all([
 				Q.all(updatePagosOnIPS),
 				Q.all(insertSmsinOnSMS),
-				Q.all(insertIntoNotifications)
+				Q.all(insertOnNotifications(connection.ips, payment, pagos[0].consumidor_email))
 			]).spread((ips, sms) => {
 					
 				deferred.resolve({
 					status: 200,
-					message: 'Pago procesado staisfactoriamente.',
+					message: 'Pago procesado satisfactoriamente.',
 					client: {
 						email: pagos[0].consumidor_email,
 						phone: pagos[0].consumidor_telefono
@@ -292,7 +297,7 @@ function executePayment (paymentId, payerId) {
 					status: 500,
 					details: [
 						{
-							issue: err.response.message
+							issue: "problema de conexion"
 						}
 					],
 					error_code: 26,
@@ -331,7 +336,9 @@ module.exports = function(req, res) {
 	const payerId = { 
 		payer_id: req.query.PayerID 
 	}
+	//const base_url = `${req.protocol}://${req.get('x-forwarded-host')}` // base url cuando la app está alojada a un servidor con su DNS (o dominio), de lo contrario usar la de abajo y comentar ésta.
 	const base_url = `${req.protocol}://${req.get('host')}`
+
 
 	let execute = (payerId, paymentId, base_url) => {
 		return new Promise((resolve, reject) => {

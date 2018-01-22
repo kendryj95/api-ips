@@ -4,20 +4,23 @@
   "description": "Payment gateway for Insiginia Payment Solutions, API Web Service.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Insigina Mobile Communications, C.A.",
   "license": "UNLICENSED",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "body-parser": "^1.17.1",
     "client-sessions": "^0.8.0",
     "cors": "^2.8.3",
     "currency-formatter": "^1.2.1",
     "express": "^4.15.2",
     "express-handlebars": "^3.0.0",
+    "foundation": "^4.2.1-1",
     "foundation-sites": "^6.3.1",
+    "jade": "^1.11.0",
     "jquery": "^3.2.1",
     "jwt-simple": "^0.5.1",
     "libphonenumber-js": "^0.4.15",
@@ -33,7 +36,7 @@
     "paypal-rest-sdk": "^1.7.1",
     "pikaday": "^1.5.1",
     "q": "^1.5.0",
-    "stripe": "^4.22.0",
+    "stripe": "^4.25.0",
     "what-input": "^4.1.3"
   }
 }

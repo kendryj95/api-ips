@@ -1,0 +1,21 @@
+<form action="sales/pay/mercadopago" method="POST" enctype="application/json">
+
+	<div style="text-align: justify; margin-top: 20px; margin-bottom: 30px;">
+		<h6>Realiza tu pago con MercadoPago ! </h6>
+		<br>
+		<p>Paga con dinero de tu cuenta MercadoPago o con tu tarjeta de credito, haciendo click en el botón "Procesar Pago"</p>
+	</div>
+
+	<br>
+	
+</form>
+<a href="{{preference.response.init_point}}" name="MP-Checkout" mp-mode="redirect" onreturn="execute_my_onreturn()" type="button" class="button alert float-right">Procesar Pago</a>
+<br>
+<h6 class="float-left"><b>Total:</b> {{money purchase.currency purchase.total }} </h6>
+<br>
+
+
+<script type="text/javascript">
+(function(){function $MPC_load(){window.$MPC_loaded !== true && (function(){var s = document.createElement("script");s.type = "text/javascript";s.async = true;s.src = document.location.protocol+"//secure.mlstatic.com/mptools/render.js";var x = document.getElementsByTagName('script')[0];x.parentNode.insertBefore(s, x);window.$MPC_loaded = true;})();}window.$MPC_loaded !== true ? (window.attachEvent ?window.attachEvent('onload', $MPC_load) : window.addEventListener('load', $MPC_load, false)) : null;})();
+</script>
+

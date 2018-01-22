@@ -1,4 +1,4 @@
-const paypal      = require('../../../config/setup').paypal
+const paypal      = require('../../../config/setup').paypal// aqui estoy jalando las credencias
 const Q           = require('q')
 const db          = require('../../../config/db')
 const handleToken = require('../../../enviroments/token')
@@ -6,7 +6,7 @@ const handleToken = require('../../../enviroments/token')
 function createPaymentJSON (purchase, base_url, redirect_url) {
 	let items = []
 
-	purchase.products.forEach( o => {
+	purchase.products.forEach( o => { // aqui esta haciendo un forEach de todos los productos facturados
 		items.push({
 			'name': o.name,
 			'sku': o.id,
@@ -15,7 +15,6 @@ function createPaymentJSON (purchase, base_url, redirect_url) {
 			'quantity': o.quantity,
 		})
 	})
-
 	const create_payment_json = {
 		intent: 'sale',
 		payer: {
@@ -50,7 +49,7 @@ function createPaypalPayment (data) {
 			deferred.reject({
 				title: 'ERROR',
 				error: {
-					'status': error.httpStatusCode,
+					'status': err.httpStatusCode,
 					'details': err.response.details,
 					'error_code': 22,
 					'error': err
@@ -77,8 +76,8 @@ function insertNewPaymentOnIPS (connection, data) {
 			data.item.currency, 
 			data.item.price,
 			data.item.quantity,
-			data.payment.id, 
-			data.item.sku, 
+			data.payment.id, //id_api_call
+			data.item.sku, // id del producto
 			data.token.cliente.id+'_'+Date.now(), 
 			data.token.cliente.sc,
 			`${data.purchase.products[data.index].type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${data.purchase.products[data.index].description}`,
@@ -198,7 +197,8 @@ module.exports = function(req, res, next) {
 	if (req.body.token && req.body.purchase && req.body.redirect_url) {
 		const purchase     = JSON.parse(req.body.purchase)
 		const redirect_url = req.body.redirect_url
-		const base_url     = `${req.protocol}://${req.get('host')}`
+		//const base_url = `${req.protocol}://${req.get('x-forwarded-host')}` // base url cuando la app está alojada a un servidor con su DNS (o dominio), de lo contrario usar la de abajo y comentar ésta.
+		const base_url = `${req.protocol}://${req.get('host')}`
 
 		// Información de contacto
 		const client = {

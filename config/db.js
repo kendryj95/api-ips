@@ -3,9 +3,9 @@ const mysql    = require('mysql')
 let env = process.env.ENV === 'PROD' ? process.env.ENV : 'DEV'
 
 const testDbCredentials = {
-	user     : 'carmen.soto',
-	password : '$q9WnZMVLj',
-	host     : '138.186.176.49',
+	user     : 'moises.marquina',
+	password : 'QzSgay2j',
+	host     : '192.168.1.117',
 	port     : '3306'
 }
 
@@ -36,7 +36,7 @@ const connections = [
 	},
 	{
 		db   : 'ips',
-		pool : createPoolConnection(testDbCredentials, 'insignia_payments_solutions')
+		pool : createPoolConnection(testDbCredentials, 'insignia_payments_solutions_mm')
 	},
 	{
 		db   : 'insignia_alarmas',
