@@ -21,6 +21,8 @@ module.exports = (req, res) => {
 	let redirect_url = ''
 	let token        = ''
 
+	req.ips_session.reset()
+
 	if (req.ips_session && req.ips_session.user_info && req.ips_session.purchase) {
 
 		purchase     = req.ips_session.purchase.purchase

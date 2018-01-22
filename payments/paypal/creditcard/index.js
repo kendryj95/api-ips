@@ -51,15 +51,8 @@ function processPay (data, token) {
 		]
 	}
 	
-	console.log("PAYMENT ======>", create_payment)
 	paypal.payment.create(create_payment, (err, payment) => {
-		console.log("CREATE PAYMENT ========> ", create_payment)
-		console.log("####################################################")
 		if (err) {
-			console.log("OCURRIÓ UN ERROR =======> AL MOMENTO DE CONECTARSE A PAYPAL Y PAGAR")
-			console.log("===============================================")
-			console.log("Tipo de error:",err)
-			console.log("===============================================")
 			deferred.reject({
 				title: 'Ha ocurrido un error al procesar su pago',
 				error: {
