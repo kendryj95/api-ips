@@ -21,6 +21,7 @@ function processPayment (data) {
 		}
 	}, (err, source) => {
 		if (err) {
+			console.log("ERROR ========>",err)
 			deferred.reject({ 
 				'title': 'No se ha podido procesar el pago con éxito', 
 				'error': {
@@ -35,13 +36,16 @@ function processPayment (data) {
 				} 
 			})
 		} else {
+			//let amount = parseInt(String(data.purchase.total).replace('.',''))
+			let amount = parseInt(data.purchase.total)
 			stripe.charges.create({
-				amount: String(data.purchase.total).replace('.',''),
+				amount: Math.round(amount*100),
 				currency: data.purchase.currency.toLowerCase(),
 				description: 'test',
 				source: source.id
 			}, (err, charge) => {
 				if (err) {
+					console.log("ERROR ========>",err)
 					deferred.reject({
 						'title': 'No se ha podido procesar el pago con éxito', 
 						'error': {

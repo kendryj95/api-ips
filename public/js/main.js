@@ -14,7 +14,7 @@ function irse(){
 }
 
 $(document).foundation();
-Foundation.Abide.defaults.patterns['expiration_date'] = /^([2-9]{1}?[0-9]{3,}?\/(0[1-9]{1}?|1[0-2]{1}?))$/;
+//Foundation.Abide.defaults.patterns['expiration_date'] = /^([2-9]{1}?[0-9]{3,}?\/(0[1-9]{1}?|1[0-2]{1}?))$/;
 
 var datesInputs = document.getElementsByClassName('cc_expiration_date');
 for (var i = datesInputs.length - 1; i >= 0; i--) {
@@ -30,7 +30,7 @@ for (var i = datesInputs.length - 1; i >= 0; i--) {
 $(function(){
 
 	$(document).on('invalid.zf.abide', function(ev,el) {
-		alert('Porfavor complete el formulario correctamente.');
+		alert('Por favor complete el formulario correctamente.');
 	});
 
 	$('#stripe_form_bitcoin').submit(function(e){

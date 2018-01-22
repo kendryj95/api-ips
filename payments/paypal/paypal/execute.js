@@ -5,6 +5,7 @@ const db           	= require('../../../config/db')
 const path         	= require('path')
 const notifications = require('../../../enviroments/notifications/')
 
+var saldo = 0
 
 function getPagos(con, paymentId) {
 	const deferred = Q.defer()
@@ -145,7 +146,55 @@ function getIdusuarioConsumidor(connection, email_consumidor){
 
 }
 
-function insertSaldoIPS(connection, stateTransaction, statePay, saldo){
+function insertSaldoIPS(connection, email, saldo){
+	const deferred = Q.defer()
+
+	if (saldo > 0) {
+		Q.all([
+			db.getConnection(db.connection.ips)
+		]).spread( con_ips => {
+			const connection = {ips: con_ips}
+
+			getIdusuarioConsumidor(connection.ips, email).then(idUsuarioIps => {
+				connection.ips.query(
+					{
+						sql: `UPDATE saldos_usuarios_ips SET saldo_ips=? WHERE id_usuario=?`,
+						timeout: 60000
+					},
+					[
+						saldo,
+						idUsuarioIps[0].idusuario_ips
+					],
+					(error, result) => {
+						if (error) {
+							console.log('Error al insertar en saldos_usuarios_ips: ', error)
+							deferred.reject({
+								title: 'ERROR',
+								error: {
+									'status': 500,
+									'details': [
+										{
+											issue: 'Error al insertar en la base de datos ips.'
+										}
+									],
+									'error_code': 29,
+									'error': error
+								}
+							})
+						} else deferred.resolve(result)
+					}
+				)
+			}).catch(err => {
+				console.log(err)
+				deferred.reject(err)
+			})
+		}).catch(err => {
+			console.log(err)
+			deferred.reject(err)
+		})
+
+	}
+		return deferred.promise
 
 }
 
@@ -198,7 +247,7 @@ function insertOnNotifications(connection, payment, email){
 	}).catch(err => {
 		console.log(err)
 		deferred.reject(err)
-})
+	})
 
 	return deferred.promise
 }
@@ -235,6 +284,12 @@ function saveOnDatabase (payment, paymentId, base_url) {
 				// INSERT EN BASE DE DATOS SMSIN
 				insertSmsinOnSMS.push(insertIntoSmsinInsignia(connection.sms, data))
 
+				if (pago.sms_contenido.indexOf("saldo") != -1) { // si el contenido es de tipo saldo
+					if (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') {
+						saldo += pago.amount //acumular todo el saldo comprado
+					}
+				}
+
 			}
 
 			console.log("hola ",pagos)
@@ -242,8 +297,11 @@ function saveOnDatabase (payment, paymentId, base_url) {
 			Q.all([
 				Q.all(updatePagosOnIPS),
 				Q.all(insertSmsinOnSMS),
-				Q.all(insertOnNotifications(connection.ips, payment, pagos[0].consumidor_email))
-			]).spread((ips, sms) => {
+				Q.all(insertOnNotifications(connection.ips, payment, pagos[0].consumidor_email)),
+				Q.all(insertSaldoIPS(connection.ips, pagos[0].consumidor_email, saldo))
+			]).spread((ips, sms, not, saldo) => {
+
+				console.log("INSERT SALDO===>", saldo)
 					
 				deferred.resolve({
 					status: 200,
@@ -286,10 +344,10 @@ function saveOnDatabase (payment, paymentId, base_url) {
 
 function executePayment (paymentId, payerId) {
 	const deferred = Q.defer()
-
+	console.log("paymentId:",paymentId,"payerId",payerId)
 	paypal.payment.execute(paymentId, payerId, (err, payment) => {
 		if(err) {
-			console.log(err)
+			console.log("ERROR AL CONSULTAR ==> ",err)
 			updateOnFail(paymentId, 'errores', 'pago_no_aprovado').then(res => console.log('BD ACTUALIZADA')).catch(err => console.error('ERROR', err))
 			deferred.reject({
 				title: 'Ha ocurrido un problema', 
@@ -297,7 +355,7 @@ function executePayment (paymentId, payerId) {
 					status: 500,
 					details: [
 						{
-							issue: "problema de conexion"
+							issue: typeof err.response.message != typeof undefined ? err.response.message : "Problema de conexión"
 						}
 					],
 					error_code: 26,
@@ -347,6 +405,7 @@ module.exports = function(req, res) {
 	}
 
 	executePayment(paymentId, payerId).then(payment => {
+		console.log("executePayment ==> payment", payment)
 		if (payment.state === 'approved') {
 			saveOnDatabase(payment, paymentId).then(response => {
 				console.log('DB SAVE RESULT', response)
@@ -371,6 +430,9 @@ module.exports = function(req, res) {
 		}
 
 	}).catch(err => {
+		console.log("executePayment ==> err", err)
+		console.log("executePayment ==> err.error.details", err.error.details)
+		console.log("executePayment ==> err.error.error.response", err.error.error.response)
 		res.status(400).render('error', err)
 	}).done(() => {
 		console.log('EJECUCION DEL PAGO FINALIZADA')
