@@ -75,90 +75,6 @@ function db_record (payment) {
 }
 
 
-/*FUNCIONES DE MERCADOPAGO */
-function insertMercado (connection,data) {
-	const deferred = Q.defer()
-
-	db.connection.ips.query(
-		{
-			sql     : `INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, ?, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			timeout: 60000
-		},
-		[
-			1, 
-			'completed', 
-			data.state, 
-			data.compra.currency, 
-			data.compra.price,
-			data.compra.quantity,
-			data.payment, //id_mp
-			data.compra.id, // id del producto
-			data.token.cliente.id+'_'+Date.now(), 
-			data.token.cliente.sc,
-			`${data.purchase.products[data.index].type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${data.purchase.products[data.index].description}`,
-			data.url_return,
-			data.client.email,
-			data.client.telephone
-		],
-		(err, result) => {
-			if (err) {
-				deferred.reject({
-					title: 'ERROR',
-					error: {
-						status: 500,
-						details: [
-							{
-								issue: 'Error al insertar en base de datos.'
-							}
-						],
-						error_code: 25,
-						error: err
-					}
-				})
-			} else deferred.resolve(result)
-		}
-	)
-
-	return deferred.promise
-}
-
-
-function guardar(purchase, data) {
-	const deferred = Q.defer()
-
-	let pagos = []
-
-	db.connection.ips.getConnection((err, connection) => {
-		if (err) return deferred.reject(err)
-
-			purchase.products.forEach((compra, index) => {
-				// Save item transaction on ips db
-				pagos.push(
-					insertMercado(connection, {
-						compra,
-						payment:data.idp,
-						index,
-						purchase: data.purchase,
-						client: data.client,
-						token: data.token,
-						url_return: data.url_return
-					})
-				)
-			})
-
-
-		Q.all(pagos).then(result => {
-		console.log("Datos insertados",result)					
-			deferred.resolve(result)
-		}).catch(err => deferred.reject(err))
-
-		connection.release()
-	})
-
-	return deferred.promise
-}
-
-
 function showSuccessmpPage(req, res) {// MERCADO PAGO SUCCESS
 
 	let purchase  = ''
@@ -170,12 +86,13 @@ function showSuccessmpPage(req, res) {// MERCADO PAGO SUCCESS
 	let id_collec=req.query.collection_id
 	if (req.ips_session.purchase && state=="approved") {
 		purchase= req.ips_session.purchase.purchase
-		token= require('../enviroments/token').getTokenDecoded(req.ips_session.purchase.token)
+		token= require('../enviroments/token').getTokenDecoded(req.ips_session.purchase.token)//token ya listo.. ya esta decodificado
 
 	// lo planeado para node mysql
 	var data ={
 		purchase,
 		idp,
+		id_collec,
 		token,
 		url_return,
 		client:{
@@ -197,18 +114,45 @@ function showSuccessmpPage(req, res) {// MERCADO PAGO SUCCESS
 		}
 	}
 
+	purchase.products.forEach( pro => { 
+		db.connection.ips.query("INSERT INTO pagos (id_pago, id_metodo_pago, fecha_pago, hora_pago, estado_compra, estado_pago, moneda, monto, cantidad, id_compra,id_api_call, id_producto_insignia, sms_id, sms_sc, sms_contenido, redirect_url, consumidor_email, consumidor_telefono) VALUES (DEFAULT, ?, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			[
+			1, 
+			'completed', 
+			data.state, 
+			data.purchase.currency, 
+			parseInt(pro.price),
+			pro.quantity,
+			data.id_collec,
+			data.idp, //id_mp
+			pro.id, // id del producto
+			data.token.cliente.id, 
+			data.token.cliente.sc,
+			`unde_${data.token.cliente.sc}_${data.token.cliente.nombre}_${pro.description}`,
+			data.url_return,
+			data.client.email,
+			data.client.telephone
+		],
+		function(error,data) {
+        if (error) {
+            console.log("Error=>",error.message);
+        } else {
+            console.log('success registradooo',JSON.stringify (data, null, 4));
 
-
-	guardar(purchase, data)
-	
-	req.ips_session.reset()//reseteo la sesion para q no hagan locuras los clientes una vez guardado la info de la db
+        }
+    });
 		
-		res.status(200).render('successmp', {
-			title: 'Nuevo pago procesado satisfactoriamente',
-			factura:purchase,
-			datamp
-		})
-		}
+	});
+	req.ips_session.reset()//reseteo la sesion para q no hagan locuras los clientes una vez guardado la info de la db
+     res.render('successmp', {
+				title: 'Nuevo pago procesado satisfactoriamente',
+				factura:purchase,
+				datamp
+			})	
+	}
+	else{
+		res.redirect("www.youtube.com");
+	}
 }
 
 
