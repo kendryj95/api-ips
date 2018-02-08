@@ -49,7 +49,8 @@ function showSuccessPage (req, res) {
 		const url    = req.query.url
 		const params = querystring.stringify({
 			paymentId: req.query.paymentId,
-			idCompra: req.query.idCompra
+			idCompra: req.query.idCompra,
+			tkn: req.query.tkn
 		})
 		let redirect = ''
 

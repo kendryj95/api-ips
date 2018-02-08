@@ -2,6 +2,7 @@ const paypal      = require('../../../config/setup').paypal
 const Q           = require('q')
 const db          = require('../../../config/db')
 const handleToken = require('../../../enviroments/token')
+const formatter = require('../../../enviroments/formatter')
 
 function createPaymentJSON (purchase, base_url, redirect_url) {
 	let items = []
@@ -32,7 +33,7 @@ function createPaymentJSON (purchase, base_url, redirect_url) {
 				},
 				amount: {
 					currency: purchase.currency,
-					total: purchase.total
+					total: formatter.numberFormat(purchase.total, 2)
 				},
 				description: `IPS_Purchase_TOTAL:${purchase.total}_FROM:${redirect_url}_PAY_METHOD:PAYPAL`
 			}
@@ -230,7 +231,7 @@ module.exports = function(req, res, next) {
 				req.ips_session.payment = data.payment
 				// Redireccionamos a paypal para procesar el pago
 				res.redirect(data.approval_url)
-			}).catch(error => res.render(error.status).render('error', error))
+			}).catch(error => res.status(400).render('error', error))
 
 		}
 

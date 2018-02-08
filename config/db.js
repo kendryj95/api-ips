@@ -5,7 +5,7 @@ let env = process.env.ENV === 'PROD' ? process.env.ENV : 'DEV'
 const testDbCredentials = {
 	user     : 'carmen.soto',
 	password : '$q9WnZMVLj',
-	host     : '138.186.176.49',
+	host     : '200.109.237.18',
 	port     : '3306'
 }
 

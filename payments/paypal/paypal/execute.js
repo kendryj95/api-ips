@@ -4,6 +4,8 @@ const Q            	= require('q')
 const db           	= require('../../../config/db')
 const path         	= require('path')
 const notifications = require('../../../enviroments/notifications/')
+const formatter = require('../../../enviroments/formatter')
+const handleToken = require('../../../enviroments/token')
 
 var saldo = 0
 
@@ -13,7 +15,7 @@ function getPagos(con, paymentId) {
 
 	con.query(
 		{
-			sql     : `SELECT p.id_pago AS id, p.sms_id, p.sms_sc, p.sms_contenido, p.id_producto_insignia AS id_producto, p.redirect_url, p.consumidor_email, p.consumidor_telefono FROM insignia_payments_solutions.pagos p WHERE p.estado_pago = \'esperando_confirmacion\' AND p.id_api_call = '${paymentId}'`,
+			sql     : `SELECT p.id_pago AS id, p.sms_id, p.sms_sc, p.monto AS amount, p.sms_contenido, p.id_producto_insignia AS id_producto, p.redirect_url, p.consumidor_email, p.consumidor_telefono FROM insignia_payments_solutions.pagos p WHERE p.estado_pago = \'esperando_confirmacion\' AND p.id_api_call = '${paymentId}'`,
 			timeout : 60000
 		},
 		(error, results, fields) => {
@@ -147,7 +149,7 @@ function getIdusuarioConsumidor(connection, email_consumidor){
 
 }
 
-function insertSaldoIPS(connection, email, saldo){
+function insertSaldoIPS(connection, email, saldo, token){
 	const deferred = Q.defer()
 
 	if (saldo > 0) {
@@ -159,11 +161,13 @@ function insertSaldoIPS(connection, email, saldo){
 			getIdusuarioConsumidor(connection.ips, email).then(idUsuarioIps => {
 				connection.ips.query(
 					{
-						sql: `UPDATE saldos_usuarios_ips SET saldo_ips=? WHERE id_usuario=?`,
+						sql: `UPDATE saldos_usuarios_ips SET saldo_ips=?, token=?, consumido=? WHERE id_usuario=?`,
 						timeout: 60000
 					},
 					[
 						saldo,
+						token,
+						0,
 						idUsuarioIps[0].idusuario_ips
 					],
 					(error, result) => {
@@ -255,6 +259,7 @@ function insertOnNotifications(connection, payment, email){
 
 function saveOnDatabase (payment, paymentId, base_url) {
 	const deferred = Q.defer()
+	let token = null
 
 	Q.all([
 		db.getConnection(db.connection.ips),
@@ -266,6 +271,8 @@ function saveOnDatabase (payment, paymentId, base_url) {
 
 			let updatePagosOnIPS = []
 			let insertSmsinOnSMS = []
+
+			console.log(pagos)
 
 			for (let pago of pagos) {
 				const data = {
@@ -286,9 +293,10 @@ function saveOnDatabase (payment, paymentId, base_url) {
 				insertSmsinOnSMS.push(insertIntoSmsinInsignia(connection.sms, data))
 
 				if (pago.sms_contenido.indexOf("saldo") != -1) { // si el contenido es de tipo saldo
-					if (payment.transactions[0].related_resources[0].sale.state == 'completed' && payment.state == 'approved') {
-						saldo += pago.amount //acumular todo el saldo comprado
-					}
+						if (token == null) {
+							token = handleToken.getTokenEncoded()
+						}
+						saldo += parseInt(formatter.numberFormat(pago.amount)) //acumular todo el saldo comprado
 				}
 
 			}
@@ -297,7 +305,7 @@ function saveOnDatabase (payment, paymentId, base_url) {
 				Q.all(updatePagosOnIPS),
 				Q.all(insertSmsinOnSMS),
 				Q.all(insertOnNotifications(connection.ips, payment, pagos[0].consumidor_email)),
-				Q.all(insertSaldoIPS(connection.ips, pagos[0].consumidor_email, saldo))
+				Q.all(insertSaldoIPS(connection.ips, pagos[0].consumidor_email, saldo, token))
 			]).spread((ips, sms, not, saldo) => {
 
 				console.log("INSERT SALDO===>", saldo)
@@ -310,7 +318,8 @@ function saveOnDatabase (payment, paymentId, base_url) {
 						phone: pagos[0].consumidor_telefono
 					},
 					url: pagos[0].redirect_url,
-					idCompra: payment.transactions[0].related_resources[0].sale.id
+					idCompra: payment.transactions[0].related_resources[0].sale.id,
+					tkn: token
 				})
 
 			}).catch(err => deferred.reject(err))
@@ -354,7 +363,7 @@ function executePayment (paymentId, payerId) {
 					status: 500,
 					details: [
 						{
-							issue: typeof err.response.message != typeof undefined ? err.response.message : "Problema de conexión"
+							issue: typeof(err.response) != "undefined" ? err.response.message : "Problema de conexión"
 						}
 					],
 					error_code: 26,
@@ -404,14 +413,19 @@ module.exports = function(req, res) {
 
 	executePayment(paymentId, payerId).then(payment => {
 		console.log("executePayment ==> payment", payment)
+		console.log("TIPO DE DATOS payment.state", typeof(payment.state))
 		if (payment.state === 'approved') {
 			saveOnDatabase(payment, paymentId).then(response => {
 				console.log('DB SAVE RESULT', response)
-				const url = `${base_url}/sales/success?${querystring.stringify({ url: response.url, paymentId: paymentId, idCompra: response.idCompra })}`
+				const url = `${base_url}/sales/success?${querystring.stringify({ url: response.url, paymentId: paymentId, idCompra: response.idCompra, tkn: response.tkn })}`
 				res.redirect(url)
 			}).catch(err => console.error('ERROR', err))
 		} else {
 			updateOnFail(paymentId, 'no_aprovado').then(res => console.log('BD ACTUALIZADA')).catch(err => console.error('ERROR', err))
+			
+			// Eliminamos toda session de la compra
+			req.ips_session.reset()
+
 			res.status(400).render('error', {
 				title: 'Su pago no pudo ser procesado', 
 				error: {
@@ -431,6 +445,8 @@ module.exports = function(req, res) {
 		console.log("executePayment ==> err", err)
 		console.log("executePayment ==> err.error.details", err.error.details)
 		console.log("executePayment ==> err.error.error.response", err.error.error.response)
+		// Eliminamos toda session de la compra
+		req.ips_session.reset()
 		res.status(400).render('error', err)
 	}).done(() => {
 		console.log('EJECUCION DEL PAGO FINALIZADA')

@@ -10,5 +10,13 @@ module.exports = {
 				error: e
 			}
 		}
+	},
+	getTokenEncoded: function(){
+		try {
+			const token = jwt.encode(Math.random(), require('../config/secret').main)
+			return token
+		} catch(e){
+			return {error: e}
+		}
 	}
 }

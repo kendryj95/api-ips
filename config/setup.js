@@ -1,5 +1,6 @@
 const paypal = require('paypal-rest-sdk')
-const stripe = 'sk_test_tiSsqbggNf43GNkK49vVrTfR'
+const stripe = 'sk_live_D4UFCsytG47kjOdnzD5VSvWH' // * key de producción
+// const stripe = 'sk_test_tiSsqbggNf43GNkK49vVrTfR' * key de sandbox
 
 //CREDENCIALES DE PRODUCCIÓN
 /*paypal.configure({
