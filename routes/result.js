@@ -101,7 +101,7 @@ function showSuccessmpPage(req, res) {// MERCADO PAGO SUCCESS
 		},
 		state
 	}
-	//para enviar a php 
+	//para enviar a php para generar la factura
 	var datamp ={
 		id_mp:idp,
 		id_collec,
@@ -133,11 +133,11 @@ function showSuccessmpPage(req, res) {// MERCADO PAGO SUCCESS
 			data.client.email,
 			data.client.telephone
 		],
-		function(error,data) {
+		function(error,result) {
         if (error) {
             console.log("Error=>",error.message);
         } else {
-            console.log('success registradooo',JSON.stringify (data, null, 4));
+            console.log('success registradooo',result);
 
         }
     });
@@ -149,9 +149,8 @@ function showSuccessmpPage(req, res) {// MERCADO PAGO SUCCESS
 				factura:purchase,
 				datamp
 			})	
-	}
-	else{
-		res.redirect("www.youtube.com");
+	}else{
+		res.redirect("/404");
 	}
 }
 
