@@ -1,6 +1,7 @@
 const paypal = require('paypal-rest-sdk')
 const stripe = 'sk_live_D4UFCsytG47kjOdnzD5VSvWH' // * key de producción
 // const stripe = 'sk_test_tiSsqbggNf43GNkK49vVrTfR' * key de sandbox
+const mercadopago = require("mercadopago")
 
 //CREDENCIALES DE PRODUCCIÓN
 /*paypal.configure({
@@ -9,6 +10,8 @@ const stripe = 'sk_live_D4UFCsytG47kjOdnzD5VSvWH' // * key de producción
 	'client_secret' : 'EMhktjPKkNQhJNQo7A0mziujZcHY-HjBzNxfx_hlCGAl_zuAeFVqnlR7QU2oYywWZllITH2HxAE0nyf4'
 })*/
 
+
+// CREDENCIALES DE SANDBOX
 /*paypal.configure({
 	'mode'          : 'live',
 	'client_id'     : 'AeZYNNQ3sjoXRyO6lCfSUHmMYEBgL9fUN1b0_7-Ts6cXZ4VwvsoP_cyfQX-vJVPmWXNAYufS0Zce6DKL',
@@ -28,4 +31,4 @@ paypal.configure({
 	'client_secret' : 'EEVAJ2R_qmfIvkSCawle3dAI73zkkhgzmDba020PWaZvKZSd8Gd5o34i7a0GJhZdElxMnF4NJbsLkmdK'
 })
 
-module.exports = { paypal, stripe }
+module.exports = { paypal, stripe, mercadopago }

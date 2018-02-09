@@ -1,4 +1,4 @@
-const paypal      = require('../../../config/setup').paypal
+const paypal      = require('../../../config/setup').paypal// aqui estoy jalando las credencias
 const Q           = require('q')
 const db          = require('../../../config/db')
 const handleToken = require('../../../enviroments/token')
@@ -7,7 +7,7 @@ const formatter = require('../../../enviroments/formatter')
 function createPaymentJSON (purchase, base_url, redirect_url) {
 	let items = []
 
-	purchase.products.forEach( o => {
+	purchase.products.forEach( o => { // aqui esta haciendo un forEach de todos los productos facturados
 		items.push({
 			'name': o.name,
 			'sku': o.id,
@@ -16,7 +16,6 @@ function createPaymentJSON (purchase, base_url, redirect_url) {
 			'quantity': o.quantity,
 		})
 	})
-
 	const create_payment_json = {
 		intent: 'sale',
 		payer: {
@@ -78,8 +77,8 @@ function insertNewPaymentOnIPS (connection, data) {
 			data.item.currency, 
 			data.item.price,
 			data.item.quantity,
-			data.payment.id, 
-			data.item.sku, 
+			data.payment.id, //id_api_call
+			data.item.sku, // id del producto
 			data.token.cliente.id+'_'+Date.now(), 
 			data.token.cliente.sc,
 			`${data.purchase.products[data.index].type}_${data.token.cliente.sc}_${data.token.cliente.nombre}_${data.purchase.products[data.index].description}`,

@@ -1,19 +1,21 @@
 const express                      = require('express')
 const router                       = express.Router()
 const paypal                       = require('paypal-rest-sdk')
+const mercadopago				   = require('mercadopago')
 const querystring                  = require('querystring')
 
 const sales                        = require('./sales')
 const result                       = require('./result')
 const validatePhoneNumber          = require('../middlewares/validatePhoneNumber')
 
-router.post('/token', require('./tokens').new)
+router.post('/token', require('./tokens').new) //TODO ESTA EN LA CARPETA routes porque todo deriva de 'sales' q se encuentra alli..sales.js
 
 router.route('/v1/sales', [ validatePhoneNumber ]).post(sales.new).get(sales.new)
 
 router.post('/v1/sales/pay/creditcard', sales.pay.creditcard)
 
 router.post('/v1/sales/pay/paypal', sales.pay.paypal.prepare)
+
 
 router.post('/v1/sales/pay/stripe/creditcard', sales.pay.stripe.creditcard)
 
@@ -26,6 +28,8 @@ router.get('/sales/proceed/paypal/success', sales.pay.paypal.execute)
 router.get('/sales/proceed/paypal/cancel', result.showCancel)
 
 router.get('/sales/success', result.showSuccess)
+
+router.get('/sales/successmp', result.showSuccessMp) 
 
 router.post('/stripe/webhook', require('../payments/stripe/webhook/'))
 

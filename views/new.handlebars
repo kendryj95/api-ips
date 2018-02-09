@@ -1,18 +1,42 @@
 <br><br>
-<div class="row align-center">
-	<div class="column small-12 medium-9 large-8">
-		<a href="javascript:history.back();" class="go-back" style="padding-top: 30px;">
-			<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
-			Regresar al paso anterior
-		</a>
+<style type="text/css">
+	.btt>.bttt:hover>a {
+	background-color: #d9534f;
+	border-radius: 7px;
+	}
 
-		<img src="/public/images/logo.png" alt="" class="image-center">
+	#pay-methods-tabs>.bttt:hover a{
+		color:white;
+	}
+	.container {
+  	padding-right: 15px;
+  	padding-left: 15px;
+  	margin-right: auto;
+  	margin-left: auto;
+	}
+	.danger{
+		color:#d9534f;
+	}
+	.table-hover > tbody > tr:hover {
+  background-color: #f5f5f5;
+	}
+	.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: #f9f9f9;
+	}
+</style>
+
+<div class="container">
+<div class="row">
+	<div class="column small-12 medium-9 large-8">
+		
+
+		<img src="/public/images/logo.png" alt="" style="width:400px;  " class="image-center">
 
 		<div class="summary">
 			<h5>Resumen de la compra</h5>
 
-			<table class="hover unstriped">
-				<thead>
+			<table class="table-hover table-striped table-responsive">
+				<thead style="color:white; background-color: #d9534f;">
 					<tr>
 						<th>PRODUCTO</th>
 						<th>PRECIO</th>
@@ -29,10 +53,10 @@
 							<p class="name">{{name}}</p>
 							<p>{{description}}</p>
 						</td>
-						<td>{{money ../purchase.currency price}}</td>
+						<td>{{money ../purchase.currency price}}</td> <!--el money../ es para pasarle los parametros a la funcion money que se encuentra en server.js, es un helpers-->
 						<td>{{quantity}}</td>
 						<td>
-							<span class="noteSubtotal">{{subtotal ../purchase.currency price quantity}}</span>
+							<span class="noteSubtotal">{{subtotal ../purchase.currency price quantity}}</span><!--el subtotal../ es para pasarle los parametros a la funcion money que se encuentra en server.js, es un helpers-->
 						</td>
 					</tr>
 
@@ -43,13 +67,15 @@
 		</div>
 
 		<div class="pay-methods">
+		<br>
 			<h5>Escoger método de pago</h5>
 
-			<ul class="tabs" data-responsive-accordion-tabs="tabs medium-accordion large-tabs" id="pay-methods-tabs">
+			<ul class="tabs btt" data-responsive-accordion-tabs="tabs medium-accordion large-tabs" id="pay-methods-tabs">
 				{{#each metodos_de_pago}}
-				<li class="tabs-title"><a href="#{{ key_name }}" aria-selected="true">{{ name }}</a></li>
+				<li class="tabs-title bttt" ><a href="#{{ key_name }}" class="aa" >{{ name }}</a></li>
 				{{/each}}
 			</ul>
+
 
 			<div class="tabs-content" data-tabs-content="pay-methods-tabs">
 
@@ -61,6 +87,14 @@
 
 			</div>
 		</div>
+		<br>
+		<div class="float-right">
+		<a href="javascript:history.back();" class="button alert pull-left" style="">
+			<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
+			Regresar al paso anterior
+		</a>
+		</div>
 	</div>
+</div>
 </div>
 <br><br>

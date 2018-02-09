@@ -12,22 +12,14 @@
 	<div class="row">
 		<div class="column small-12 medium-6">
 			<label>
-				Nombre
+				Nombre y Apellido
 				<input type="text" placeholder="Jhon" name="first_name" required>
 				<span class="form-error">
 					Por favor, complete este campo.
 				</span>
 			</label>
 		</div>
-		<div class="column small-12 medium-6">
-			<label>
-				Apellido
-				<input type="text" placeholder="Smith" name="last_name" required>
-				<span class="form-error">
-					Por favor, complete este campo.
-				</span>
-			</label>
-		</div>
+		
 	</div>
 
 	<div class="row">
@@ -40,51 +32,9 @@
 				</span>
 			</label>
 		</div>
-		<div class="column small-12 medium-6">
-			<label>
-				Ciudad
-				<input type="text" placeholder="New York" name="city" required>
-				<span class="form-error">
-					Por favor, ingrese una ciudad válida.
-				</span>
-			</label>
-		</div>
+		
 	</div>
 
-	<div class="row">
-		<div class="column small-12 medium-6">
-			<label>
-				Estado
-				<input type="text" placeholder="NY" name="state" required>
-				<span class="form-error">
-					Por favor, complete este campo.
-				</span>
-			</label>
-		</div>
-		<div class="column small-12 medium-6">
-			<label>
-				País
-				<select name="country" required>
-					<option disabled selected>-- seleccione un país --</option>
-					{{#each countries}}
-					<option value="{{ccode}}">{{cname}}</option>
-					{{/each}}
-				</select>
-			</label>
-		</div>
-	</div>
-
-	<div class="row">
-		<div class="column small-12 medium-6">
-			<label>
-				Código postal
-				<input type="text" placeholder="10001" name="postal_code" pattern="alpha_numeric" required>
-				<span class="form-error">
-					Por favor, complete este campo.
-				</span>
-			</label>
-		</div>
-	</div>
 
 	<h6>Tarjeta de crédito</h6>
 
@@ -96,8 +46,6 @@
 					<option selected disabled>-- seleccione un tipo de tarjeta --</option>
 					<option value="visa">Visa</option>
 					<option value="mastercard">Master card</option>
-					<option value="amex">American express</option>
-					<option value="discover">Discover</option>
 				</select>
 			</label>
 		</div>
@@ -116,7 +64,7 @@
 	
 		<div class="column">
 			<label>
-				CVV
+				Código de seguridad de la tarjeta
 				<input type="number" name="cc_cvv" placeholder="132" pattern="cvv" required>
 				<span class="form-error">
 					Porfavor ingrese un numero de seguridad válido.
@@ -129,9 +77,9 @@
 		<div class="column small-12 medium-6">
 			<label>
 				Fecha de expiración
-				<input type="text" class="cc_expiration_date" name="cc_expiration_date" id="cc_expiration_date" placeholder="2019-10">
+				<input type="text" class="" name="cc_expiration_date" id="cc_expiration_date" placeholder="08/22"  required>
 				<span class="form-error">
-					Por favor ingrese una fecha válida.
+					Profavor ingrese una fecha válida.
 				</span>
 			</label>
 		</div>

@@ -9,7 +9,6 @@ const handleToken = require('../../../enviroments/token')
 
 var saldo = 0
 
-
 function getPagos(con, paymentId) {
 	const deferred = Q.defer()
 
@@ -301,6 +300,8 @@ function saveOnDatabase (payment, paymentId, base_url) {
 
 			}
 
+			console.log("hola ",pagos)
+
 			Q.all([
 				Q.all(updatePagosOnIPS),
 				Q.all(insertSmsinOnSMS),
@@ -404,6 +405,7 @@ module.exports = function(req, res) {
 	}
 	//const base_url = `${req.protocol}://${req.get('x-forwarded-host')}` // base url cuando la app está alojada a un servidor con su DNS (o dominio), de lo contrario usar la de abajo y comentar ésta.
 	const base_url = `${req.protocol}://${req.get('host')}`
+
 
 	let execute = (payerId, paymentId, base_url) => {
 		return new Promise((resolve, reject) => {

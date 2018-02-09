@@ -1,5 +1,7 @@
 const countries        = require('../enviroments/countries')
 const db               = require('../config/db')
+var MP = require ("mercadopago"); // requiero la libreria mercado pago..
+var config = require ("../config");
 
 function getMetodosDePagos () {
 	return new Promise((resolve, reject) => {
@@ -21,7 +23,7 @@ module.exports = (req, res) => {
 	let redirect_url = ''
 	let token        = ''
 
-	req.ips_session.reset()
+	//req.ips_session.reset()
 
 	if (req.ips_session && req.ips_session.user_info && req.ips_session.purchase) {
 
@@ -32,7 +34,7 @@ module.exports = (req, res) => {
 	} else if (req.body.purchase && req.body.redirect_url) {
 
 		// Inicializamos la info de la compra
-		purchase     = JSON.parse(req.body.purchase)
+		purchase     = JSON.parse(req.body.purchase) //aqui recibio el json pasado del lo del yii
 		redirect_url = req.body.redirect_url
 		token        = req.body.token
 
@@ -63,7 +65,36 @@ module.exports = (req, res) => {
 			}
 		})
 	}
-	
+	// MERCADOPAGO
+	var mp = new MP (config.client_id, config.client_secret);
+
+	let items=[]
+
+	purchase.products.forEach( pro => { 
+		items.push({
+			"id": pro.id,
+			"title": pro.name,
+			"quantity": pro.quantity,
+			"description": pro.description,
+			"currency_id": purchase.currency,
+			"unit_price":parseInt(pro.price)
+		})
+	});
+    
+    var preference = {
+
+			"items": items,
+
+			"back_urls": {
+			"success": "http://localhost:3030/sales/successmp",
+			"failure": "http://www.youtube.com",// cuando hay una falla o cuando clipkean en "volver a mi sitio"
+			"pending": "http://www.insignia.com.ve"
+            },
+			"auto_return": "approved"
+        };
+
+    
+
 	if (purchase && redirect_url, token) {
 		// Obtener metodos de pago desde db
 		getMetodosDePagos().then(metodos => {
@@ -95,15 +126,38 @@ module.exports = (req, res) => {
 		 		}
 		 	})
 
-			// Mostrar resumen de la compra y los metodos de pago disponibles
-			res.render('new', {
-				title: 'Nuevo pago',
-				return_url: redirect_url,
-				purchase,
-				countries,
-				token,
-				metodos_de_pago
-			})
+
+		 	mp.createPreference(preference, function (err, data){//mercadopago ejecuto la funcion
+        
+        	if (err) {
+            res.send (err);
+        	} else if(purchase.currency=="VEF"||"ARS"||"BRL"||"MXN"||"COP"||"PEN"||"CLP"){
+        		
+            res.render('new', {"preference": data,
+        						return_url: redirect_url,
+								purchase,
+								countries,
+								token,
+								metodos_de_pago});
+            console.log(JSON.stringify (data, null, 4));
+        	}
+        	if (data.status==201) {
+        		console.log("PREFERENCIA CREADAAAAAAAAAAAA")
+        	}
+
+    		});
+        
+ 
+		 	if (purchase.currency=="USD") {
+		 		res.render('new',{
+        						return_url: redirect_url,
+								purchase,
+								countries,
+								token,
+								metodos_de_pago});
+		 	}
+
+			
 		}).catch(err => {
 			console.error('ERROR', err)
 			if (err instanceof Error) {

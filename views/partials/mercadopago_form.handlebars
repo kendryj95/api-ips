@@ -1,0 +1,26 @@
+<img src="/public/images/mercadopago_logo.png" alt="Mercadopago" class="image-center" style="width: 40%;">
+
+<div style="text-align: justify; margin-bottom: 20px;">
+	<p>En tu billetera pones el dinero para pagar lo que necesitas. Con <b>Mercado Pago</b>, también puedes comprar con tarjeta de crédito (VISA O MASTERCARD) u otro medio de pago en efectivo, como los que usas para pagar los servicios públicos. O puedes cargar saldo y usarlo cuando quieras.</p>
+</div>
+
+<h6 class="underlined" style="margin-bottom: 20px;">Seleccione una forma para pagar</h6>
+
+<ul class="accordion stripe-methods" data-accordion>
+
+	{{! Pague con mercadopago }}
+	<li class="accordion-item is-active" data-accordion-item>
+		<a href="#" class="accordion-title">MercadoPago</a>
+		<div class="accordion-content" data-tab-content>
+			{{> mercadopago/mercadopago }}
+		</div>
+	</li>
+	{{! mercadopago con tarjeta de crédito }}
+
+	{{!<li class="accordion-item " data-accordion-item>
+		<a href="#" class="accordion-title">Tarjeta de crédito</a>
+		<div class="accordion-content" data-tab-content>
+			{{> mercadopago/creditcard }}
+		{{!</div>
+	</li>}}
+</ul>

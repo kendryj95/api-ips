@@ -1,13 +1,15 @@
 const express    = require('express')
 const paypal     = require('paypal-rest-sdk')
+const mercadopago= require('mercadopago')
 const bodyParser = require('body-parser')
+const fs 		 = require('fs')
 const exphbs     = require('express-handlebars')
 const cors       = require('cors')
 const morgan     = require('morgan')
 const log4js     = require('log4js')
 const sessions   = require('client-sessions')
 
-const app = express()
+var app = express()
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -18,11 +20,12 @@ app.use(bodyParser.json())
 // enabling cors
 app.use(cors())
 
+
 // Enabling sessions
 app.use(sessions({
 	cookieName: 'ips_session',
 	secret: require('./config/secret').main,
-	duration: 30 * 60 * 1000,
+	duration: 05 * 60 * 1000,
 	activeDuration: 5 * 60 * 1000,
 }))
 
@@ -32,15 +35,29 @@ app.engine('handlebars', exphbs({
 	helpers: {
 		json: function(json){
 			return JSON.stringify(json)
-		},
+		},/*
+		ifcond: function(currency, name) {
+  				if(currency =="USD" && name=="MERCADOPAGO") {
+    				return
+  					}
+  					
+		},*/
 		subtotal: function(currency, price, quantity){
-			return require('./enviroments/formatter').money((quantity * price), currency)
+			if (currency=="VEF") {
+			return require('./enviroments/formatter').money((quantity *(price*1)), currency)
+		}
+		return require('./enviroments/formatter').money((quantity * price), currency)
 		},
-		money: function(currency, price){
-			return require('./enviroments/formatter').money(price, currency)
+		money: function(currency, price){ //money
+			if (currency=="VEF") {
+			return require('./enviroments/formatter').money(price*1, currency)
+		}
+		return require('./enviroments/formatter').money(price, currency)
 		}
 	}
 }))
+
+
 app.set('view engine', 'handlebars')
 
 // set vendor static files
@@ -70,5 +87,5 @@ app.get('*', require('./static/404'))
 app.set('port', process.env.PORT || 3030)
 
 const server = app.listen(app.get('port'), function(){
-	console.log('payment gateway listening at port '+ server.address().port)
+	console.log('Pasarela de pagos, escuchando desde el puerto '+ server.address().port)
 })

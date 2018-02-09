@@ -1,0 +1,22 @@
+
+<div class="row align-center">
+	<div class="column small-12 medium-9 large-8">
+		
+		<div style="text-align: center;">
+			<img src="/public/images/logo.png" alt="Mercadopago" class="image-center">
+			<img src="/public/images/logo_mercadopago.png" alt="Mercadopagoo" class="">
+			
+			
+			<h4>¡Perfectooooo!</h4>
+			<br>
+			<p><b>El pago ha sido procesado correctamente, porfavor para completar la compra, haz en click en Procesar Factura! y finaliza tu compra y obten tu factura como soporte! </b></p>
+			
+			<form action="http://localhost/insignia/ips/mpfactura/" method="POST" target='_blank'>
+				<input type="hidden" value="{{json datamp}}" name="data">
+				<input type="hidden" value="{{json factura}}" name="fact">
+				<button type="submit" class="button alert" onclick="irse()">Factura</button>
+			</form>
+		</div>
+
+	</div>
+</div>

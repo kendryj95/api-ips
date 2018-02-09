@@ -245,3 +245,13 @@ module.exports = [
     {'ccode' : 'ZM', 'cname' : 'Zambia'},
     {'ccode' : 'ZW', 'cname' : 'Zimbabwe'}
 ]
+
+module.exports = [
+    {'ccodee' : 'AR', 'cnamee' : 'Argentina'},
+    {'ccodee' : 'BR', 'cnamee' : 'Brazil'},
+    {'ccodee' : 'CL', 'cnamee' : 'Chile'},
+    {'ccodee' : 'CO', 'cnamee' : 'Colombia'},
+    {'ccodee' : 'PE', 'cnamee' : 'Peru'},
+    {'ccodee' : 'UY', 'cnamee' : 'Uruguay'},
+    {'ccodee' : 'VE', 'cnamee' : 'Venezuela'}
+]

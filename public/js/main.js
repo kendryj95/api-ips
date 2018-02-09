@@ -4,6 +4,15 @@ $(window).on('load', function() { // makes sure the whole site is loaded
 	$('body').delay(350).css({'overflow':'visible'});
 })
 
+function irse(){
+
+	window.setTimeout(function(){
+		window.location.href = 'http://localhost/insignia/ips';
+	}, 02000); // dos segundos
+
+	return
+}
+
 $(document).foundation();
 //Foundation.Abide.defaults.patterns['expiration_date'] = /^([2-9]{1}?[0-9]{3,}?\/(0[1-9]{1}?|1[0-2]{1}?))$/;
 
