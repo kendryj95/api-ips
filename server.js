@@ -9,7 +9,9 @@ const morgan     = require('morgan')
 const log4js     = require('log4js')
 const sessions   = require('client-sessions')
 
-var app = express()
+
+var app = express();
+
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -19,6 +21,7 @@ app.use(bodyParser.json())
 
 // enabling cors
 app.use(cors())
+
 
 
 // Enabling sessions
@@ -44,15 +47,13 @@ app.engine('handlebars', exphbs({
 		},*/
 		subtotal: function(currency, price, quantity){
 			if (currency=="VEF") {
-			return require('./enviroments/formatter').money((quantity *(price*1)), currency)
+			return require('./enviroments/formatter').money((quantity *price), currency)
 		}
 		return require('./enviroments/formatter').money((quantity * price), currency)
 		},
-		money: function(currency, price){ //money
-			if (currency=="VEF") {
-			return require('./enviroments/formatter').money(price*1, currency)
-		}
-		return require('./enviroments/formatter').money(price, currency)
+		money: function(currency,price){ //money
+			
+			return require('./enviroments/formatter').money(price, currency)
 		}
 	}
 }))

@@ -2,6 +2,7 @@ const countries        = require('../enviroments/countries')
 const db               = require('../config/db')
 var MP = require ("mercadopago"); // requiero la libreria mercado pago..
 var config = require ("../config");
+var request = require('request');
 
 function getMetodosDePagos () {
 	return new Promise((resolve, reject) => {
@@ -69,6 +70,7 @@ module.exports = (req, res) => {
 	var mp = new MP (config.client_id, config.client_secret);
 
 	let items=[]
+	console.log("DATOS DE PURCHAS:", purchase)
 
 	purchase.products.forEach( pro => { 
 		items.push({
@@ -80,21 +82,30 @@ module.exports = (req, res) => {
 			"unit_price":parseInt(pro.price)
 		})
 	});
-    
+	let base_url = `${req.protocol}://${req.get('host')}`
     var preference = {
 
 			"items": items,
 
 			"back_urls": {
-			"success": "http://localhost:3030/sales/successmp",
-			"failure": "http://www.youtube.com",// cuando hay una falla o cuando clipkean en "volver a mi sitio"
-			"pending": "http://www.insignia.com.ve"
+			"success": base_url+"/sales/successmp",
+			"failure": "http://localhost/Insignia/IPS/"// cuando hay una falla o cuando clipkean en "volver a mi sitio"
             },
-			"auto_return": "approved"
+			"auto_return": "approved",
+			"payment_methods": {
+				
+				"excluded_payment_types": [
+					{
+						"id": "ticket"
+					},
+					{
+						"id": "bank_transfer"
+					}
+				]
+			}
         };
 
     
-
 	if (purchase && redirect_url, token) {
 		// Obtener metodos de pago desde db
 		getMetodosDePagos().then(metodos => {
@@ -128,7 +139,7 @@ module.exports = (req, res) => {
 
 
 		 	mp.createPreference(preference, function (err, data){//mercadopago ejecuto la funcion
-        
+		 		
         	if (err) {
             res.send (err);
         	} else if(purchase.currency=="VEF"||"ARS"||"BRL"||"MXN"||"COP"||"PEN"||"CLP"){
@@ -139,14 +150,16 @@ module.exports = (req, res) => {
 								countries,
 								token,
 								metodos_de_pago});
-            console.log(JSON.stringify (data, null, 4));
+            //console.log(JSON.stringify (data, null, 4));
         	}
+
         	if (data.status==201) {
-        		console.log("PREFERENCIA CREADAAAAAAAAAAAA")
+        		console.log("PREFERENCIA CREADA mp");
         	}
 
     		});
         
+
  
 		 	if (purchase.currency=="USD") {
 		 		res.render('new',{
