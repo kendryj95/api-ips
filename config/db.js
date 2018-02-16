@@ -36,7 +36,7 @@ const connections = [
 	},
 	{
 		db   : 'ips',
-		pool : createPoolConnection(testDbCredentials, 'insignia_payments_solutions_mm')
+		pool : createPoolConnection(testDbCredentials, 'insignia_payments_solutions')
 	},
 	{
 		db   : 'insignia_alarmas',

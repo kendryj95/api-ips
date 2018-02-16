@@ -11,7 +11,7 @@
 			<br>
 			<p><b>El pago ha sido procesado correctamente, porfavor para completar la compra, haz en click en Procesar Factura! y finaliza tu compra y obten tu factura como soporte! </b></p>
 			
-			<form action="http://localhost/insignia/ips/mpfactura/" method="POST" target='_blank'>
+			<form action="http://localhost/ips/mpfactura/" method="POST" target='_blank'>
 				<input type="hidden" value="{{json datamp}}" name="data">
 				<input type="hidden" value="{{json factura}}" name="fact">
 				<button type="submit" class="button alert" onclick="irse()">Factura</button>
